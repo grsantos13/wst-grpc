@@ -1,0 +1,75 @@
+syntax = "proto3";
+import "shared.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "Exporter";
+
+package br.com.gn;
+
+service ExporterService {
+  rpc create (NewExporterRequest) returns (ExporterResponse) {}
+  rpc read (ReadExporterRequest) returns (ExportersResponse) {}
+  rpc update (UpdateExporterRequest) returns (ExporterResponse) {}
+  rpc delete (DeleteExporterRequest) returns (ExporterResponse) {}
+}
+
+enum PaymentTerms {
+  UNKNOWN = 0;
+  E90 = 1;
+  E120 = 2;
+  E45 = 3;
+  E30 = 4;
+  E60 = 5;
+}
+
+enum Incoterm {
+  UNK = 0;
+  EXW = 1;
+  FAS = 2;
+  FCA = 3;
+  FOB = 4;
+  CPT = 5;
+  CFR = 6;
+  CIP = 7;
+  CIF = 8;
+  DDP = 9;
+  DPU = 10;
+  DAT = 11;
+}
+
+message NewExporterRequest {
+  string code = 1;
+  string name = 2;
+  PaymentTerms paymentTerms = 3;
+  Address address = 4;
+  Incoterm incoterm = 5;
+}
+
+message ReadExporterRequest{
+  string name = 1;
+}
+
+message ExportersResponse {
+  repeated ExporterResponse exporters = 1;
+}
+
+message UpdateExporterRequest {
+  string id = 1;
+  string name = 2;
+  PaymentTerms paymentTerms = 3;
+  Address address = 4;
+  Incoterm incoterm = 5;
+}
+
+message DeleteExporterRequest {
+  string id = 1;
+}
+
+message ExporterResponse {
+  string id = 1;
+  string code = 2;
+  string name = 3;
+  PaymentTerms paymentTerms = 4;
+  Address address = 5;
+  Incoterm incoterm = 6;
+}

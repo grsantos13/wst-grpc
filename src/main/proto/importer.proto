@@ -1,0 +1,43 @@
+syntax = "proto3";
+import "shared.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "Importer";
+
+
+package br.com.gn;
+
+service ImporterService {
+  rpc create (NewImporterRequest) returns (ImporterResponse) {}
+  rpc read (ReadImporterRequest) returns (ImportersResponse) {}
+  rpc update (UpdateImporterRequest) returns (ImporterResponse) {}
+  rpc delete (DeleteImporterRequest) returns (ImporterResponse) {}
+}
+
+message NewImporterRequest {
+  string plant = 1;
+  Address address = 2;
+}
+
+message ReadImporterRequest{
+  string plant = 1;
+}
+
+message ImportersResponse {
+  repeated ImporterResponse importers = 1;
+}
+
+message UpdateImporterRequest {
+  string id = 1;
+  Address address = 2;
+}
+
+message DeleteImporterRequest {
+  string id = 1;
+}
+
+message ImporterResponse {
+  string id = 1;
+  string plant = 2;
+  Address address = 3;
+}
