@@ -1,7 +1,9 @@
 package br.com.gn.address
 
+import io.micronaut.core.annotation.Introspected
 import javax.validation.constraints.NotBlank
 
+@Introspected
 data class AddressRequest(
     @field:NotBlank val street: String,
     @field:NotBlank val city: String,
