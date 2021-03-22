@@ -1,41 +1,43 @@
 package br.com.gn.exporter
 
-import br.com.gn.DeleteExporterRequest
+import br.com.gn.shared.exception.ObjectAlreadyExistsException
+import br.com.gn.shared.exception.ObjectNotFoundException
+import br.com.gn.shared.validation.ValidUUID
 import io.micronaut.validation.Validated
 import java.util.*
 import javax.inject.Singleton
-import javax.persistence.EntityManager
 import javax.transaction.Transactional
 import javax.validation.Valid
 
 @Validated
 @Singleton
 class ExporterService(
-    private val manager: EntityManager
+    private val repository: ExporterRepository
 ) {
 
     @Transactional
     fun create(@Valid request: NewExporterRequest): Exporter {
+        val existsByCode = repository.existsByCode(request.code)
+        if (existsByCode)
+            throw ObjectAlreadyExistsException("Exporter already exists with code ${request.code}")
+
         val exporter = request.toModel()
-        manager.persist(exporter)
+        repository.save(exporter)
         return exporter
     }
 
     @Transactional
     fun read(name: String): List<Exporter> {
         return when {
-            name.isNullOrBlank() -> manager.createQuery(" select e from Exporter e ", Exporter::class.java)
-                .resultList
-            else -> manager.createQuery(" select e from Exporter e where e.name = :name ", Exporter::class.java)
-                .setParameter("name", name)
-                .resultList
+            name.isNullOrBlank() -> repository.findAll()
+            else -> repository.findByName(name)
         }
     }
 
     @Transactional
-    fun update(@Valid request: UpdateExporterRequest, id: String): Exporter {
-        val exporter = manager.find(Exporter::class.java, UUID.fromString(id))
-            ?: throw IllegalArgumentException("Exporter not found with id $id")
+    fun update(@Valid request: UpdateExporterRequest, @ValidUUID id: String): Exporter {
+        val exporter = repository.findById(UUID.fromString(id))
+            .orElseThrow { ObjectNotFoundException("Exporter not found with id $id") }
 
         exporter.update(request)
 
@@ -43,11 +45,11 @@ class ExporterService(
     }
 
     @Transactional
-    fun delete(request: DeleteExporterRequest): Exporter {
-        val exporter = manager.find(Exporter::class.java, UUID.fromString(request.id))
-            ?: throw IllegalArgumentException("Exporter not found with id ${request.id}")
+    fun delete(@ValidUUID id: String): Exporter {
+        val exporter = repository.findById(UUID.fromString(id))
+            .orElseThrow { ObjectNotFoundException("Importer not found with id $id") }
 
-        manager.remove(exporter)
+        repository.delete(exporter)
         return exporter
     }
 

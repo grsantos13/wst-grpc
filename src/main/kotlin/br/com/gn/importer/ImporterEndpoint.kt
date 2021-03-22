@@ -7,12 +7,14 @@ import br.com.gn.ImportersResponse
 import br.com.gn.NewImporterRequest
 import br.com.gn.ReadImporterRequest
 import br.com.gn.UpdateImporterRequest
+import br.com.gn.shared.exception.ErrorHandler
 import io.grpc.stub.StreamObserver
 import javax.inject.Singleton
 import javax.transaction.Transactional
 
+@ErrorHandler
 @Singleton
-open class ImporterEndpoint(
+class ImporterEndpoint(
     private val service: ImporterService
 ) : ImporterServiceGrpc.ImporterServiceImplBase() {
 
@@ -49,7 +51,7 @@ open class ImporterEndpoint(
 
     @Transactional
     override fun delete(request: DeleteImporterRequest, responseObserver: StreamObserver<ImporterResponse>) {
-        val importer = service.delete(request)
+        val importer = service.delete(request.id)
         val response = grpcImporterResponse(importer)
         responseObserver.onNext(response)
         responseObserver.onCompleted()
