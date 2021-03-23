@@ -11,3 +11,9 @@ message Address {
   string zipCode = 3;
   string country = 4;
 }
+
+enum OperationType {
+  UNK = 0;
+  IMPORT = 1;
+  EXPORT = 2;
+}
