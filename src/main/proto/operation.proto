@@ -1,0 +1,34 @@
+syntax = "proto3";
+import "shared.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "Operation";
+
+package br.com.gn;
+
+service OperationService {
+  rpc create (NewOperationRequest) returns (OperationResponse) {}
+  rpc read (ReadOperationRequest) returns (OperationsResponse) {}
+  rpc delete (DeleteOperationRequest) returns (OperationResponse) {}
+}
+
+message NewOperationRequest {
+  string country = 1;
+  OperationType type = 2;
+}
+
+message OperationResponse {
+  string id = 1;
+  string country = 2;
+  OperationType type = 3;
+}
+
+message OperationsResponse{
+  repeated OperationResponse operations = 1;
+}
+
+message ReadOperationRequest {}
+
+message DeleteOperationRequest{
+  string id = 1;
+}

@@ -1,0 +1,40 @@
+syntax = "proto3";
+import "shared.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "Process";
+
+package br.com.gn;
+
+service ProcessService {
+  rpc create (NewProcessRequest) returns (ProcessResponse) {}
+  rpc read (ReadProcessRequest) returns (ProcessesResponse) {}
+  rpc delete (DeleteProcessRequest) returns (ProcessResponse) {}
+}
+
+message NewProcessRequest {
+  string responsibleId = 1;
+  string name = 2;
+  string operationId = 3;
+}
+
+message ProcessResponse {
+  string id = 1;
+  string responsible = 2;
+  string name = 3;
+  string country = 4;
+  OperationType type = 5;
+}
+
+message ProcessesResponse {
+  repeated ProcessResponse processes = 1;
+}
+
+message ReadProcessRequest {
+  string name = 1;
+}
+
+message DeleteProcessRequest {
+  string id = 1;
+}
+

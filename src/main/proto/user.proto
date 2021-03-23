@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_outer_classname = "User";
+
+package br.com.gn;
+
+service UserService {
+  rpc create (NewUserRequest) returns (UserResponse) {}
+  rpc read (ReadUserRequest) returns (UsersResponse) {}
+  rpc update (UpdateUserRequest) returns (UserResponse) {}
+  rpc delete (DeleteUserRequest) returns (UserResponse) {}
+}
+
+message NewUserRequest {
+  string name = 1;
+  string email = 2;
+}
+
+message UserResponse {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+}
+
+message UsersResponse {
+  repeated UserResponse users = 1;
+}
+
+message ReadUserRequest {
+  oneof consulta{
+    string name = 1;
+    string email = 2;
+  }
+}
+
+message UpdateUserRequest {
+  string email = 1;
+}
+
+message DeleteUserRequest {
+  string id = 1;
+}
