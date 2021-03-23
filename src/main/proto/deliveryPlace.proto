@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_outer_classname = "DeliveryPlace";
+
+package br.com.gn;
+
+service DeliveryPlaceService {
+  rpc create (NewDeliveryPlaceRequest) returns (DeliveryPlaceResponse) {}
+  rpc read (ReadDeliveryPlaceRequest) returns (DeliveryPlacesResponse) {}
+  rpc delete (DeleteDeliveryPlaceRequest) returns (DeliveryPlaceResponse) {}
+}
+
+message NewDeliveryPlaceRequest{
+  string name = 1;
+}
+
+message DeliveryPlaceResponse {
+  string id = 1;
+  string name = 2;
+}
+
+message DeliveryPlacesResponse{
+  repeated DeliveryPlaceResponse places = 1;
+}
+
+message ReadDeliveryPlaceRequest{
+
+}
+
+message DeleteDeliveryPlaceRequest{
+  string id = 1;
+}

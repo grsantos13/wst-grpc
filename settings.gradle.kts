@@ -1,1 +1,1 @@
-rootProject.name="wst"
+rootProject.name="wstOrder"
