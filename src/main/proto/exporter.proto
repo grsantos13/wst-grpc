@@ -23,7 +23,7 @@ enum PaymentTerms {
 }
 
 enum Incoterm {
-  UNK = 0;
+  UNKNOWN_INCOTERM = 0;
   EXW = 1;
   FAS = 2;
   FCA = 3;
