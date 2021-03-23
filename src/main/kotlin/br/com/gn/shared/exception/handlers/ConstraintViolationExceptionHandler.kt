@@ -23,7 +23,7 @@ class ConstraintViolationExceptionHandler : ExceptionHandler<ConstraintViolation
 
         val status = Status.newBuilder()
             .setCode(Code.INVALID_ARGUMENT_VALUE)
-            .setMessage("Erro de validação dos argumentos")
+            .setMessage("Arguments validation error")
             .addDetails(Any.pack(details))
             .build()
 

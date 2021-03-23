@@ -9,6 +9,7 @@ package br.com.gn;
 service ProcessService {
   rpc create (NewProcessRequest) returns (ProcessResponse) {}
   rpc read (ReadProcessRequest) returns (ProcessesResponse) {}
+  rpc update (UpdateProcessRequest) returns (ProcessResponse) {}
   rpc delete (DeleteProcessRequest) returns (ProcessResponse) {}
 }
 
@@ -34,7 +35,13 @@ message ReadProcessRequest {
   string name = 1;
 }
 
+message UpdateProcessRequest{
+  string id = 1;
+  string responsibleId = 2;
+}
+
 message DeleteProcessRequest {
   string id = 1;
 }
+
 
