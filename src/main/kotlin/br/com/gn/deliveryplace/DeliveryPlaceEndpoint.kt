@@ -7,17 +7,26 @@ import br.com.gn.DeliveryPlacesResponse
 import br.com.gn.NewDeliveryPlaceRequest
 import br.com.gn.ReadDeliveryPlaceRequest
 import br.com.gn.shared.exception.ErrorHandler
+import br.com.gn.shared.exception.ObjectAlreadyExistsException
+import br.com.gn.shared.exception.ObjectNotFoundException
 import io.grpc.stub.StreamObserver
+import java.util.*
 import javax.inject.Singleton
 
 @ErrorHandler
 @Singleton
 class DeliveryPlaceEndpoint(
-    private val service: DeliveryPlaceService
+    private val repository: DeliveryPlaceRepository
 ) : DeliveryPlaceServiceGrpc.DeliveryPlaceServiceImplBase() {
 
     override fun create(request: NewDeliveryPlaceRequest, responseObserver: StreamObserver<DeliveryPlaceResponse>) {
-        val deliveryPlace: DeliveryPlace = service.create(request.toRequestModel())
+        if (request.name.isNullOrBlank())
+            throw IllegalArgumentException("Name must be informed")
+
+        if (repository.existsByName(request.name))
+            throw ObjectAlreadyExistsException("Delivery place already exists with name ${request.name}")
+
+        val deliveryPlace = repository.save(request.toModel())
         val response = grpcDeliveryPlaceResponse(deliveryPlace)
         responseObserver.onNext(response)
         responseObserver.onCompleted()
@@ -25,7 +34,7 @@ class DeliveryPlaceEndpoint(
 
 
     override fun read(request: ReadDeliveryPlaceRequest, responseObserver: StreamObserver<DeliveryPlacesResponse>) {
-        val responseList = service.read()
+        val responseList = repository.findAll()
             .map { grpcDeliveryPlaceResponse(it) }
 
         val response = DeliveryPlacesResponse.newBuilder()
@@ -40,7 +49,11 @@ class DeliveryPlaceEndpoint(
         request: DeleteDeliveryPlaceRequest,
         responseObserver: StreamObserver<DeliveryPlaceResponse>
     ) {
-        val deliveryPlace: DeliveryPlace = service.delete(request.id)
+        val deliveryPlace = repository.findById(UUID.fromString(request.id))
+            .orElseThrow { ObjectNotFoundException("Delivery place not found with id ${request.id}") }
+
+        repository.delete(deliveryPlace)
+
         val response = grpcDeliveryPlaceResponse(deliveryPlace)
         responseObserver.onNext(response)
         responseObserver.onCompleted()
