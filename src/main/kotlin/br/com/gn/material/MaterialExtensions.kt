@@ -16,7 +16,7 @@ fun NewMaterialRequest.toRequestModel(): Request {
         code = code,
         description = description,
         ncm = ncm,
-        unitPrice = BigDecimal(unitPrice),
+        unitPrice = if (unitPrice.isNotBlank()) BigDecimal(unitPrice) else BigDecimal.ZERO,
         pricerPerThousand = pricePerThousand,
         preShipmentLicense = preShipmentLicense,
         planning = planning
@@ -27,7 +27,7 @@ fun UpdateMaterialRequest.toRequestModel(): UpdateRequest {
     return UpdateRequest(
         description = description,
         ncm = ncm,
-        unitPrice = BigDecimal(unitPrice),
+        unitPrice = if (unitPrice.isNullOrBlank()) BigDecimal.ZERO else BigDecimal(unitPrice),
         pricerPerThousand = pricePerThousand,
         preShipmentLicense = preShipmentLicense,
         planning = planning

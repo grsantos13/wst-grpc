@@ -1,6 +1,9 @@
 package br.com.gn.material
 
 import br.com.gn.ReadMaterialRequest.SearchMaterialCase
+import br.com.gn.material.SearchMaterialFilter.CODE
+import br.com.gn.material.SearchMaterialFilter.DESCRIPTION
+import br.com.gn.material.SearchMaterialFilter.NCM
 import io.micronaut.core.annotation.Introspected
 import io.micronaut.data.model.Pageable
 import java.math.BigDecimal
@@ -50,7 +53,15 @@ data class ReadMaterialRequest(
     val code: String?,
     val ncm: String?,
     val description: String?
-)
+) {
+    init {
+        when (filter) {
+            NCM -> if (ncm.isNullOrBlank()) throw IllegalArgumentException("NCM must be informed for a filter")
+            CODE -> if (code.isNullOrBlank()) throw IllegalArgumentException("NCM must be informed for a filter")
+            DESCRIPTION -> if (description.isNullOrBlank()) throw IllegalArgumentException("NCM must be informed for a filter")
+        }
+    }
+}
 
 enum class SearchMaterialFilter(val grpcSearch: SearchMaterialCase?) {
     CODE(SearchMaterialCase.CODE),
@@ -59,7 +70,7 @@ enum class SearchMaterialFilter(val grpcSearch: SearchMaterialCase?) {
     ELSE(SearchMaterialCase.SEARCHMATERIAL_NOT_SET);
 
     companion object {
-        val filters = SearchMaterialFilter.values().associateBy(SearchMaterialFilter::grpcSearch)
+        private val filters = SearchMaterialFilter.values().associateBy(SearchMaterialFilter::grpcSearch)
 
         fun from(grpcSearch: SearchMaterialCase?): SearchMaterialFilter {
             return filters[grpcSearch] ?: ELSE

@@ -1,7 +1,7 @@
 package br.com.gn.material
 
 import br.com.gn.client.NcmSearchRequest
-import br.com.gn.client.NcmSiscomex
+import br.com.gn.client.NcmSiscomexClient
 import br.com.gn.material.SearchMaterialFilter.CODE
 import br.com.gn.material.SearchMaterialFilter.DESCRIPTION
 import br.com.gn.material.SearchMaterialFilter.NCM
@@ -12,16 +12,17 @@ import io.micronaut.validation.Validated
 import java.util.*
 import javax.inject.Singleton
 import javax.transaction.Transactional
+import javax.validation.Valid
 
 @Validated
 @Singleton
 class MaterialService(
     private val repository: MaterialRepository,
-    private val ncmSiscomex: NcmSiscomex
+    private val ncmSiscomex: NcmSiscomexClient
 ) {
 
     @Transactional
-    fun create(request: NewMaterialRequest): Material {
+    fun create(@Valid request: NewMaterialRequest): Material {
         if (repository.existsByCode(request.code))
             throw ObjectAlreadyExistsException("Material with code ${request.code} already exists")
 
@@ -37,7 +38,7 @@ class MaterialService(
     }
 
     @Transactional
-    fun update(request: UpdateMaterialRequest, id: String): Material {
+    fun update(@Valid request: UpdateMaterialRequest, id: String): Material {
         val material = repository.findById(UUID.fromString(id))
             .orElseThrow { ObjectNotFoundException("Material not found for id $id") }
 
