@@ -36,7 +36,7 @@ dependencies {
     implementation("javax.annotation:javax.annotation-api")
     implementation("io.micronaut.sql:micronaut-jdbc-hikari")
     implementation("io.micronaut.data:micronaut-data-hibernate-jpa")
-    implementation("io.micronaut:micronaut-http-io.git.grsantos13.client")
+    implementation("io.micronaut:micronaut-http-client")
     testImplementation("org.mockito:mockito-core")
     runtimeOnly("ch.qos.logback:logback-classic")
     runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
