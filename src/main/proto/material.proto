@@ -1,0 +1,66 @@
+syntax = "proto3";
+import "shared.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "Material";
+
+package br.com.gn;
+
+service MaterialService {
+  rpc create (NewMaterialRequest) returns (MaterialResponse) {}
+  rpc read (ReadMaterialRequest) returns (MaterialsResponse) {}
+  rpc update (UpdateMaterialRequest) returns (MaterialResponse) {}
+  rpc delete (DeleteMaterialRequest) returns (MaterialResponse) {}
+}
+
+message NewMaterialRequest {
+  string code = 1;
+  string description = 2;
+  string ncm = 3;
+  string unitPrice = 4;
+  bool pricePerThousand = 5;
+  bool preShipmentLicense = 6;
+  string planning = 7;
+}
+
+message ReadMaterialRequest {
+  Pageable pageable = 1;
+  oneof searchMaterial {
+    string code = 2;
+    string ncm = 3;
+    string description = 4;
+  }
+}
+
+message UpdateMaterialRequest {
+  string id = 1;
+  string description = 2;
+  string ncm = 3;
+  string unitPrice = 4;
+  bool pricePerThousand = 5;
+  bool preShipmentLicense = 6;
+  string planning = 7;
+}
+
+message DeleteMaterialRequest {
+  string id = 1;
+}
+
+message MaterialResponse {
+  string id = 1;
+  string code = 2;
+  string description = 3;
+  string ncm = 4;
+  string unitPrice = 5;
+  bool pricePerThousand = 6;
+  bool preShipmentLicense = 7;
+  string planning = 8;
+  string ncmDescription = 9;
+}
+
+message MaterialsResponse {
+  repeated MaterialResponse materials = 1;
+  int64 totalPages = 2;
+  int64 totalSize = 3;
+  int64 numberOfElements = 4;
+}

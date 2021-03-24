@@ -12,6 +12,18 @@ message Address {
   string country = 4;
 }
 
+enum OrderDirection {
+  UNKNOWN_ORDER_DIRECTION = 0;
+  ASC = 1;
+  DESC = 2;
+}
+message Pageable {
+  int32 size = 1;
+  int32 page = 2;
+  string orderBy = 3;
+  OrderDirection direction = 4;
+}
+
 enum OperationType {
   UNKNOWN_OPERATION = 0;
   IMPORT = 1;

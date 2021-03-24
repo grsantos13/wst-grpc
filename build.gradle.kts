@@ -36,10 +36,10 @@ dependencies {
     implementation("javax.annotation:javax.annotation-api")
     implementation("io.micronaut.sql:micronaut-jdbc-hikari")
     implementation("io.micronaut.data:micronaut-data-hibernate-jpa")
+    implementation("io.micronaut:micronaut-http-client")
     runtimeOnly("ch.qos.logback:logback-classic")
     runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
     runtimeOnly("com.h2database:h2")
-    testImplementation("io.micronaut:micronaut-http-client")
 }
 
 
