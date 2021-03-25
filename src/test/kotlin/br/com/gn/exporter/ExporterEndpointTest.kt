@@ -8,6 +8,7 @@ import br.com.gn.NewExporterRequest
 import br.com.gn.PaymentTerms
 import br.com.gn.ReadExporterRequest
 import br.com.gn.UpdateExporterRequest
+import br.com.gn.util.StatusRuntimeExceptionUtils.Companion.violations
 import com.google.rpc.BadRequest
 import io.grpc.ManagedChannel
 import io.grpc.Status
@@ -18,6 +19,8 @@ import io.micronaut.context.annotation.Factory
 import io.micronaut.grpc.annotation.GrpcChannel
 import io.micronaut.grpc.server.GrpcServerChannel
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.containsInAnyOrder
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -194,30 +197,26 @@ internal class ExporterEndpointTest(
             )
         }
 
-        val badRequest = StatusProto.fromThrowable(exception)
-            ?.detailsList?.get(0)!!.unpack(BadRequest::class.java)
-
-        assertEquals(Status.INVALID_ARGUMENT.code, exception.status.code)
-        assertEquals("Arguments validation error", exception.status.description)
-
-        with(badRequest.fieldViolationsList) {
-            assertTrue(contains(generateFieldViolation("name", "must not be blank")))
-            assertTrue(contains(generateFieldViolation("street", "must not be blank")))
-            assertTrue(contains(generateFieldViolation("paymentTerms", "must not be null")))
-            assertTrue(contains(generateFieldViolation("city", "must not be blank")))
-            assertTrue(contains(generateFieldViolation("country", "must not be blank")))
-            assertTrue(contains(generateFieldViolation("incoterm", "must not be null")))
-            assertTrue(contains(generateFieldViolation("zipCode", "must not be blank")))
-            assertTrue(contains(generateFieldViolation("id", "must not be blank")))
-            assertTrue(
-                contains(
-                    generateFieldViolation(
+        with(exception) {
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("Arguments validation error", status.description)
+            assertThat(
+                violations(exception),
+                containsInAnyOrder(
+                    Pair("name", "must not be blank"),
+                    Pair("street", "must not be blank"),
+                    Pair("paymentTerms", "must not be null"),
+                    Pair("city", "must not be blank"),
+                    Pair("country", "must not be blank"),
+                    Pair("incoterm", "must not be null"),
+                    Pair("zipCode", "must not be blank"),
+                    Pair("id", "must not be blank"),
+                    Pair(
                         "id",
                         "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""
                     )
                 )
             )
-            assertEquals(9, size)
         }
     }
 
@@ -259,20 +258,18 @@ internal class ExporterEndpointTest(
         val badRequest = StatusProto.fromThrowable(exception)
             ?.detailsList?.get(0)!!.unpack(BadRequest::class.java)
 
-        assertEquals(Status.INVALID_ARGUMENT.code, exception.status.code)
-        assertEquals("Arguments validation error", exception.status.description)
-
-        with(badRequest.fieldViolationsList) {
-            assertTrue(contains(generateFieldViolation("id", "must not be blank")))
-            assertTrue(
-                contains(
-                    generateFieldViolation(
+        with(exception) {
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("Arguments validation error", status.description)
+            assertThat(
+                violations(this), containsInAnyOrder(
+                    Pair("id", "must not be blank"),
+                    Pair(
                         "id",
                         "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""
                     )
                 )
             )
-            assertEquals(2, size)
         }
     }
 

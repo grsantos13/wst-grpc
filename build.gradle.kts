@@ -38,6 +38,7 @@ dependencies {
     implementation("io.micronaut.data:micronaut-data-hibernate-jpa")
     implementation("io.micronaut:micronaut-http-client")
     testImplementation("org.mockito:mockito-core")
+    testImplementation("org.hamcrest:hamcrest-core:2.2")
     runtimeOnly("ch.qos.logback:logback-classic")
     runtimeOnly("com.fasterxml.jackson.module:jackson-module-kotlin")
     runtimeOnly("com.h2database:h2")
