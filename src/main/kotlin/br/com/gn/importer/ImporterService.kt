@@ -8,6 +8,7 @@ import java.util.*
 import javax.inject.Singleton
 import javax.transaction.Transactional
 import javax.validation.Valid
+import javax.validation.constraints.NotBlank
 
 @Validated
 @Singleton
@@ -35,7 +36,7 @@ class ImporterService(
     }
 
     @Transactional
-    fun update(@Valid request: UpdateImporterRequest, @ValidUUID id: String): Importer {
+    fun update(@Valid request: UpdateImporterRequest, @NotBlank @ValidUUID id: String): Importer {
         val importer = repository.findById(UUID.fromString(id))
             .orElseThrow { ObjectNotFoundException("Importer not found with id $id") }
 
@@ -44,7 +45,7 @@ class ImporterService(
     }
 
     @Transactional
-    fun delete(@ValidUUID id: String): Importer {
+    fun delete(@NotBlank @ValidUUID id: String): Importer {
         val importer = repository.findById(UUID.fromString(id))
             .orElseThrow { ObjectNotFoundException("Importer not found with id $id") }
 
