@@ -6,21 +6,21 @@ import br.com.gn.ImporterServiceGrpc
 import br.com.gn.NewImporterRequest
 import br.com.gn.ReadImporterRequest
 import br.com.gn.UpdateImporterRequest
-import com.google.rpc.BadRequest
+import br.com.gn.util.StatusRuntimeExceptionUtils.Companion.violations
 import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
-import io.grpc.protobuf.StatusProto
 import io.micronaut.context.annotation.Bean
 import io.micronaut.context.annotation.Factory
 import io.micronaut.grpc.annotation.GrpcChannel
 import io.micronaut.grpc.server.GrpcServerChannel
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.containsInAnyOrder
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.*
@@ -91,19 +91,18 @@ internal class ImporterEndpointTest(
             )
         }
 
-        val badRequest = StatusProto.fromThrowable(exception)
-            ?.detailsList?.get(0)!!.unpack(BadRequest::class.java)
-
-        assertEquals(Status.INVALID_ARGUMENT.code, exception.status.code)
-        assertEquals("Arguments validation error", exception.status.description)
-
-        with(badRequest.fieldViolationsList) {
-            assertTrue(contains(generateFieldViolation("plant", "must not be blank")))
-            assertTrue(contains(generateFieldViolation("street", "must not be blank")))
-            assertTrue(contains(generateFieldViolation("city", "must not be blank")))
-            assertTrue(contains(generateFieldViolation("country", "must not be blank")))
-            assertTrue(contains(generateFieldViolation("zipCode", "must not be blank")))
-            assertEquals(5, size)
+        with(exception) {
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("Arguments validation error", status.description)
+            assertThat(
+                violations(this), containsInAnyOrder(
+                    Pair("plant", "must not be blank"),
+                    Pair("street", "must not be blank"),
+                    Pair("city", "must not be blank"),
+                    Pair("country", "must not be blank"),
+                    Pair("zipCode", "must not be blank")
+                )
+            )
         }
     }
 
@@ -179,28 +178,22 @@ internal class ImporterEndpointTest(
                     .build()
             )
         }
-
-        val badRequest = StatusProto.fromThrowable(exception)
-            ?.detailsList?.get(0)!!.unpack(BadRequest::class.java)
-
-        assertEquals(Status.INVALID_ARGUMENT.code, exception.status.code)
-        assertEquals("Arguments validation error", exception.status.description)
-
-        with(badRequest.fieldViolationsList) {
-            assertTrue(contains(generateFieldViolation("street", "must not be blank")))
-            assertTrue(contains(generateFieldViolation("city", "must not be blank")))
-            assertTrue(contains(generateFieldViolation("country", "must not be blank")))
-            assertTrue(contains(generateFieldViolation("zipCode", "must not be blank")))
-            assertTrue(contains(generateFieldViolation("id", "must not be blank")))
-            assertTrue(
-                contains(
-                    generateFieldViolation(
+        with(exception) {
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("Arguments validation error", status.description)
+            assertThat(
+                violations(this), containsInAnyOrder(
+                    Pair("street", "must not be blank"),
+                    Pair("city", "must not be blank"),
+                    Pair("country", "must not be blank"),
+                    Pair("zipCode", "must not be blank"),
+                    Pair("id", "must not be blank"),
+                    Pair(
                         "id",
                         "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""
                     )
                 )
             )
-            assertEquals(6, size)
         }
     }
 
@@ -241,23 +234,18 @@ internal class ImporterEndpointTest(
             )
         }
 
-        val badRequest = StatusProto.fromThrowable(exception)
-            ?.detailsList?.get(0)!!.unpack(BadRequest::class.java)
-
-        assertEquals(Status.INVALID_ARGUMENT.code, exception.status.code)
-        assertEquals("Arguments validation error", exception.status.description)
-
-        with(badRequest.fieldViolationsList) {
-            assertTrue(contains(generateFieldViolation("id", "must not be blank")))
-            assertTrue(
-                contains(
-                    generateFieldViolation(
+        with(exception) {
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("Arguments validation error", status.description)
+            assertThat(
+                violations(this), containsInAnyOrder(
+                    Pair("id", "must not be blank"),
+                    Pair(
                         "id",
                         "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""
                     )
                 )
             )
-            assertEquals(2, size)
         }
     }
 
@@ -266,11 +254,6 @@ internal class ImporterEndpointTest(
             plant = plant ?: "2422",
             address = ImporterAddress("Test", "test", "test", "test")
         )
-
-    private fun generateFieldViolation(field: String, description: String) = BadRequest.FieldViolation.newBuilder()
-        .setField(field)
-        .setDescription(description)
-        .build()
 
 }
 

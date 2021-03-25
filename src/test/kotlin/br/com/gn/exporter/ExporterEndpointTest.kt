@@ -9,11 +9,9 @@ import br.com.gn.PaymentTerms
 import br.com.gn.ReadExporterRequest
 import br.com.gn.UpdateExporterRequest
 import br.com.gn.util.StatusRuntimeExceptionUtils.Companion.violations
-import com.google.rpc.BadRequest
 import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
-import io.grpc.protobuf.StatusProto
 import io.micronaut.context.annotation.Bean
 import io.micronaut.context.annotation.Factory
 import io.micronaut.grpc.annotation.GrpcChannel
@@ -24,7 +22,6 @@ import org.hamcrest.Matchers.containsInAnyOrder
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.*
@@ -99,23 +96,21 @@ internal class ExporterEndpointTest(
                     .build()
             )
         }
-
-        val badRequest = StatusProto.fromThrowable(exception)
-            ?.detailsList?.get(0)!!.unpack(BadRequest::class.java)
-
-        assertEquals(Status.INVALID_ARGUMENT.code, exception.status.code)
-        assertEquals("Arguments validation error", exception.status.description)
-
-        with(badRequest.fieldViolationsList) {
-            assertTrue(contains(generateFieldViolation("name", "must not be blank")))
-            assertTrue(contains(generateFieldViolation("street", "must not be blank")))
-            assertTrue(contains(generateFieldViolation("code", "must not be blank")))
-            assertTrue(contains(generateFieldViolation("paymentTerms", "must not be null")))
-            assertTrue(contains(generateFieldViolation("city", "must not be blank")))
-            assertTrue(contains(generateFieldViolation("country", "must not be blank")))
-            assertTrue(contains(generateFieldViolation("incoterm", "must not be null")))
-            assertTrue(contains(generateFieldViolation("zipCode", "must not be blank")))
-            assertEquals(8, size)
+        with(exception) {
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("Arguments validation error", status.description)
+            assertThat(
+                violations(this), containsInAnyOrder(
+                    Pair("name", "must not be blank"),
+                    Pair("street", "must not be blank"),
+                    Pair("code", "must not be blank"),
+                    Pair("paymentTerms", "must not be null"),
+                    Pair("city", "must not be blank"),
+                    Pair("country", "must not be blank"),
+                    Pair("incoterm", "must not be null"),
+                    Pair("zipCode", "must not be blank")
+                )
+            )
         }
     }
 
@@ -255,9 +250,6 @@ internal class ExporterEndpointTest(
             )
         }
 
-        val badRequest = StatusProto.fromThrowable(exception)
-            ?.detailsList?.get(0)!!.unpack(BadRequest::class.java)
-
         with(exception) {
             assertEquals(Status.INVALID_ARGUMENT.code, status.code)
             assertEquals("Arguments validation error", status.description)
@@ -281,11 +273,6 @@ internal class ExporterEndpointTest(
             ExporterAddress("Test", "test", "test", "test"),
             ExporterIncoterm.CIF
         )
-
-    private fun generateFieldViolation(field: String, description: String) = BadRequest.FieldViolation.newBuilder()
-        .setField(field)
-        .setDescription(description)
-        .build()
 
 }
 

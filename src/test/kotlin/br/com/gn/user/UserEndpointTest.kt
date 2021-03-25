@@ -5,28 +5,27 @@ import br.com.gn.NewUserRequest
 import br.com.gn.ReadUserRequest
 import br.com.gn.UpdateUserRequest
 import br.com.gn.UserServiceGrpc
-import com.google.protobuf.Any
-import com.google.rpc.BadRequest
+import br.com.gn.util.StatusRuntimeExceptionUtils.Companion.violations
 import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
-import io.grpc.protobuf.StatusProto
 import io.micronaut.context.annotation.Bean
 import io.micronaut.context.annotation.Factory
 import io.micronaut.grpc.annotation.GrpcChannel
 import io.micronaut.grpc.server.GrpcServerChannel
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.containsInAnyOrder
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.*
 
 @MicronautTest(transactional = false)
 internal class UserEndpointTest(
-    val client: UserServiceGrpc.UserServiceBlockingStub,
-    val repository: UserRepository
+    private val client: UserServiceGrpc.UserServiceBlockingStub,
+    private val repository: UserRepository
 ) {
 
     @AfterEach
@@ -58,20 +57,17 @@ internal class UserEndpointTest(
             )
         }
 
-        val anyDetails: Any? = StatusProto.fromThrowable(exception)
-            ?.detailsList?.get(0)
-
-        val badRequest = anyDetails!!.unpack(BadRequest::class.java)
-        assertEquals(3, badRequest.fieldViolationsList.size)
-        assertTrue(
-            badRequest.fieldViolationsList.contains(
-                generateFieldViolation("email", "must be a well-formed email address")
+        with(exception) {
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("Arguments validation error", status.description)
+            assertThat(
+                violations(this), containsInAnyOrder(
+                    Pair("email", "must be a well-formed email address"),
+                    Pair("email", "must not be blank"),
+                    Pair("name", "must not be blank")
+                )
             )
-        )
-        assertTrue(badRequest.fieldViolationsList.contains(generateFieldViolation("email", "must not be blank")))
-        assertTrue(badRequest.fieldViolationsList.contains(generateFieldViolation("name", "must not be blank")))
-        assertEquals(Status.INVALID_ARGUMENT.code, exception.status.code)
-        assertEquals("Arguments validation error", exception.status.description)
+        }
     }
 
     @Test
@@ -224,14 +220,28 @@ internal class UserEndpointTest(
         val exception = assertThrows<StatusRuntimeException> {
             client.update(
                 UpdateUserRequest.newBuilder()
-                    .setEmail("")
-                    .setId("")
                     .build()
             )
         }
 
-        assertEquals(Status.INVALID_ARGUMENT.code, exception.status.code)
-        assertEquals("Arguments validation error", exception.status.description)
+        with(exception) {
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("Arguments validation error", status.description)
+
+            assertThat(
+                violations(this), containsInAnyOrder(
+                    Pair(
+                        "id",
+                        "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""
+                    ),
+                    Pair("id", "must not be blank"),
+                    Pair("email", "must not be blank"),
+                    Pair("email", "must be a well-formed email address"),
+                )
+            )
+
+        }
+
     }
 
     @Test
@@ -262,13 +272,33 @@ internal class UserEndpointTest(
         assertEquals("User not found with id $idNotFound", exception.status.description)
     }
 
+    @Test
+    fun `should not delete a user with invalid parameters`() {
+        val exception = assertThrows<StatusRuntimeException> {
+            client.delete(
+                DeleteUserRequest.newBuilder()
+                    .build()
+            )
+        }
+
+        with(exception) {
+            assertEquals(io.grpc.Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("Arguments validation error", status.description)
+
+            assertThat(
+                violations(this), containsInAnyOrder(
+                    Pair(
+                        "id",
+                        "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""
+                    ),
+                    Pair("id", "must not be blank")
+                )
+            )
+
+        }
+    }
+
     private fun createUser() = User("email@email.com", "Email")
-
-
-    private fun generateFieldViolation(field: String, description: String) = BadRequest.FieldViolation.newBuilder()
-        .setField(field)
-        .setDescription(description)
-        .build()
 }
 
 @Factory

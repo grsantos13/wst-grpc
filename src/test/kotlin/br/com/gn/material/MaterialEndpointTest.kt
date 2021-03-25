@@ -9,21 +9,21 @@ import br.com.gn.UpdateMaterialRequest
 import br.com.gn.client.NcmSearchRequest
 import br.com.gn.client.NcmSearchResponse
 import br.com.gn.client.NcmSiscomexClient
-import com.google.rpc.BadRequest
+import br.com.gn.util.StatusRuntimeExceptionUtils.Companion.violations
 import io.grpc.ManagedChannel
 import io.grpc.Status
 import io.grpc.StatusRuntimeException
-import io.grpc.protobuf.StatusProto
 import io.micronaut.context.annotation.Bean
 import io.micronaut.context.annotation.Factory
 import io.micronaut.grpc.annotation.GrpcChannel
 import io.micronaut.grpc.server.GrpcServerChannel
 import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.containsInAnyOrder
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
@@ -107,19 +107,20 @@ internal class MaterialEndpointTest(
             grpcClient.create(newBuilder().build())
         }
 
-        val badRequest = StatusProto.fromThrowable(exception)
-            ?.detailsList?.get(0)!!.unpack(BadRequest::class.java)
+        with(exception) {
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("Arguments validation error", status.description)
+            assertThat(
+                violations(this), containsInAnyOrder(
+                    Pair("unitPrice", "must be greater than 0"),
+                    Pair("ncm", "must match \"[0-9]{8}\""),
+                    Pair("planning", "must not be blank"),
+                    Pair("code", "must not be blank"),
+                    Pair("ncm", "must not be blank"),
+                    Pair("description", "must not be blank")
+                )
+            )
 
-        assertEquals(Status.INVALID_ARGUMENT.code, exception.status.code)
-        assertEquals("Arguments validation error", exception.status.description)
-        with(badRequest.fieldViolationsList) {
-            assertTrue(contains(generateFieldViolation("unitPrice", "must be greater than 0")))
-            assertTrue(contains(generateFieldViolation("ncm", "must match \"[0-9]{8}\"")))
-            assertTrue(contains(generateFieldViolation("planning", "must not be blank")))
-            assertTrue(contains(generateFieldViolation("code", "must not be blank")))
-            assertTrue(contains(generateFieldViolation("ncm", "must not be blank")))
-            assertTrue(contains(generateFieldViolation("description", "must not be blank")))
-            assertEquals(6, size)
         }
     }
 
@@ -271,18 +272,18 @@ internal class MaterialEndpointTest(
             )
         }
 
-        val badRequest = StatusProto.fromThrowable(exception)
-            ?.detailsList?.get(0)!!.unpack(BadRequest::class.java)
-
-        assertEquals(Status.INVALID_ARGUMENT.code, exception.status.code)
-        assertEquals("Arguments validation error", exception.status.description)
-        with(badRequest.fieldViolationsList) {
-            assertTrue(contains(generateFieldViolation("unitPrice", "must be greater than 0")))
-            assertTrue(contains(generateFieldViolation("ncm", "must match \"[0-9]{8}\"")))
-            assertTrue(contains(generateFieldViolation("planning", "must not be blank")))
-            assertTrue(contains(generateFieldViolation("ncm", "must not be blank")))
-            assertTrue(contains(generateFieldViolation("description", "must not be blank")))
-            assertEquals(5, size)
+        with(exception) {
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("Arguments validation error", status.description)
+            assertThat(
+                violations(this), containsInAnyOrder(
+                    Pair("unitPrice", "must be greater than 0"),
+                    Pair("ncm", "must match \"[0-9]{8}\""),
+                    Pair("planning", "must not be blank"),
+                    Pair("ncm", "must not be blank"),
+                    Pair("description", "must not be blank")
+                )
+            )
         }
     }
 
@@ -335,11 +336,6 @@ internal class MaterialEndpointTest(
         material.updateNcmDescription("Description ncm")
         return material
     }
-
-    private fun generateFieldViolation(field: String, description: String) = BadRequest.FieldViolation.newBuilder()
-        .setField(field)
-        .setDescription(description)
-        .build()
 
     @MockBean(NcmSiscomexClient::class)
     fun ncmSiscomexClient(): NcmSiscomexClient {

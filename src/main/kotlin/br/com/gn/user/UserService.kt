@@ -5,11 +5,13 @@ import br.com.gn.ReadUserRequest.ConsultaCase.EMAIL
 import br.com.gn.ReadUserRequest.ConsultaCase.NAME
 import br.com.gn.shared.exception.ObjectAlreadyExistsException
 import br.com.gn.shared.exception.ObjectNotFoundException
+import br.com.gn.shared.validation.ValidUUID
 import io.micronaut.validation.Validated
 import java.util.*
 import javax.inject.Singleton
 import javax.transaction.Transactional
 import javax.validation.Valid
+import javax.validation.constraints.NotBlank
 
 @Validated
 @Singleton
@@ -46,7 +48,7 @@ class UserService(
     }
 
     @Transactional
-    fun update(@Valid request: UpdateUserRequest, id: String): User {
+    fun update(@Valid request: UpdateUserRequest, @NotBlank @ValidUUID id: String): User {
         val existsByEmail = repository.existsByEmail(request.email)
         if (existsByEmail)
             throw ObjectAlreadyExistsException("User already exists with email ${request.email}")
@@ -59,7 +61,7 @@ class UserService(
     }
 
     @Transactional
-    fun delete(id: String): User {
+    fun delete(@NotBlank @ValidUUID id: String): User {
         val user = repository.findById(UUID.fromString(id))
             .orElseThrow { ObjectNotFoundException("User not found with id $id") }
 
