@@ -18,9 +18,3 @@ data class NewOperationRequest(
         )
     }
 }
-
-class OperationResponse(operation: Operation) {
-    val id = operation.id
-    val country = operation.country
-    val type = operation.type
-}

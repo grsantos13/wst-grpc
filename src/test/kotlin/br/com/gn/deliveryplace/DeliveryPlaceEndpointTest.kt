@@ -43,7 +43,7 @@ internal class DeliveryPlaceEndpointTest(
     }
 
     @Test
-    fun `should not create a delivery place due to invalid argument`() {
+    fun `should not create a delivery place due to existing name`() {
         repository.save(DeliveryPlace("LOCAL DE ENTREGA"))
 
         val exception = assertThrows<StatusRuntimeException> {
@@ -59,11 +59,10 @@ internal class DeliveryPlaceEndpointTest(
     }
 
     @Test
-    fun `should not create a delivery place due to existing name`() {
+    fun `should not create a delivery place due to invalid argument`() {
         val exception = assertThrows<StatusRuntimeException> {
             client.create(
                 NewDeliveryPlaceRequest.newBuilder()
-                    .setName("")
                     .build()
             )
         }

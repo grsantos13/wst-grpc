@@ -1,5 +1,6 @@
 package br.com.gn.process
 
+import br.com.gn.shared.exception.ObjectAlreadyExistsException
 import br.com.gn.shared.exception.ObjectNotFoundException
 import br.com.gn.shared.validation.ValidUUID
 import io.micronaut.validation.Validated
@@ -8,6 +9,7 @@ import javax.inject.Singleton
 import javax.persistence.EntityManager
 import javax.transaction.Transactional
 import javax.validation.Valid
+import javax.validation.constraints.NotBlank
 
 @Validated
 @Singleton
@@ -18,6 +20,9 @@ class ProcessService(
 
     @Transactional
     fun create(@Valid request: NewProcessRequest): Process {
+        if (repository.existsByName(request.name))
+            throw ObjectAlreadyExistsException("Process already exists with name ${request.name}")
+
         val process = request.toModel(manager)
         repository.save(process)
         return process
@@ -31,7 +36,7 @@ class ProcessService(
     }
 
     @Transactional
-    fun update(@Valid request: UpdateProcessRequest, @ValidUUID id: String): Process {
+    fun update(@Valid request: UpdateProcessRequest, @NotBlank @ValidUUID id: String): Process {
         val process = repository.findById(UUID.fromString(id))
             .orElseThrow { ObjectNotFoundException("Process not found with id $id") }
 
@@ -40,7 +45,7 @@ class ProcessService(
     }
 
     @Transactional
-    fun delete(@ValidUUID id: String): Process {
+    fun delete(@NotBlank @ValidUUID id: String): Process {
         val process = repository.findById(UUID.fromString(id))
             .orElseThrow { ObjectNotFoundException("Process not found with id $id") }
         repository.delete(process)

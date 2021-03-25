@@ -8,13 +8,12 @@ import io.micronaut.core.annotation.Introspected
 import java.util.*
 import javax.persistence.EntityManager
 import javax.validation.constraints.NotBlank
-import javax.validation.constraints.NotNull
 
 @Introspected
 data class NewProcessRequest(
-    @field:NotNull @field:ValidUUID val responsibleId: String,
+    @field:NotBlank @field:ValidUUID val responsibleId: String,
     @field:NotBlank val name: String,
-    @field:NotNull @field:ValidUUID val operationId: String
+    @field:NotBlank @field:ValidUUID val operationId: String
 ) {
     fun toModel(manager: EntityManager): Process {
         val responsible = manager.find(User::class.java, UUID.fromString(responsibleId))
@@ -32,7 +31,7 @@ data class NewProcessRequest(
 
 @Introspected
 data class UpdateProcessRequest(
-    @field:NotNull @ValidUUID val responsibleId: String
+    @field:NotBlank @field:ValidUUID val responsibleId: String
 ) {
     fun responsible(manager: EntityManager): User {
         return manager.find(User::class.java, UUID.fromString(responsibleId))

@@ -74,6 +74,24 @@ internal class UserEndpointTest(
         assertEquals("Arguments validation error", exception.status.description)
     }
 
+    @Test
+    fun `should return an error when user already exists`() {
+        val createdUser = createUser()
+        repository.save(createdUser)
+
+        val exception = assertThrows<StatusRuntimeException> {
+            client.create(
+                NewUserRequest.newBuilder()
+                    .setEmail(createdUser.email)
+                    .setName(createdUser.name)
+                    .build()
+            )
+        }
+
+        assertEquals(Status.ALREADY_EXISTS.code, exception.status.code)
+        assertEquals("User already exists with email ${createdUser.email}", exception.status.description)
+    }
+
 
     @Test
     fun `should filter by name`() {
@@ -138,8 +156,6 @@ internal class UserEndpointTest(
                     .build()
             )
         }
-
-
 
         assertEquals(Status.INVALID_ARGUMENT.code, exceptionEmail.status.code)
         assertEquals("Email must be informed for a filter", exceptionEmail.status.description)
