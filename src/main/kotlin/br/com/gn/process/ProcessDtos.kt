@@ -2,7 +2,7 @@ package br.com.gn.process
 
 import br.com.gn.operation.Operation
 import br.com.gn.shared.exception.ObjectNotFoundException
-import br.com.gn.shared.validation.ExistsResource
+import br.com.gn.shared.validation.ValidUUID
 import br.com.gn.user.User
 import io.micronaut.core.annotation.Introspected
 import java.util.*
@@ -12,14 +12,14 @@ import javax.validation.constraints.NotNull
 
 @Introspected
 data class NewProcessRequest(
-    @field:NotNull val responsibleId: UUID,
+    @field:NotNull @field:ValidUUID val responsibleId: String,
     @field:NotBlank val name: String,
-    @field:NotNull val operationId: UUID
+    @field:NotNull @field:ValidUUID val operationId: String
 ) {
     fun toModel(manager: EntityManager): Process {
-        val responsible = manager.find(User::class.java, responsibleId)
+        val responsible = manager.find(User::class.java, UUID.fromString(responsibleId))
             ?: throw ObjectNotFoundException("Responsible not found with id $responsibleId")
-        val operation = manager.find(Operation::class.java, operationId)
+        val operation = manager.find(Operation::class.java, UUID.fromString(operationId))
             ?: throw ObjectNotFoundException("Operation not found with id $operationId")
 
         return Process(
@@ -32,10 +32,10 @@ data class NewProcessRequest(
 
 @Introspected
 data class UpdateProcessRequest(
-    @field:NotNull @ExistsResource(field = "id", domainClass = User::class) val responsibleId: UUID
+    @field:NotNull @ValidUUID val responsibleId: String
 ) {
     fun responsible(manager: EntityManager): User {
-        return manager.find(User::class.java, responsibleId)
+        return manager.find(User::class.java, UUID.fromString(responsibleId))
             ?: throw ObjectNotFoundException("Responsible not found with id $responsibleId")
     }
 }
