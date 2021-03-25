@@ -11,13 +11,13 @@ import javax.validation.constraints.Size
 data class NewExporterRequest(
     @field:NotBlank @field:Size(max = 8) val code: String,
     @field:NotBlank val name: String,
-    @field:NotNull val paymentTerms: PaymentTerms,
+    @field:NotNull val paymentTerms: PaymentTerms?,
     @field:NotNull @field:Valid val address: AddressRequest,
-    @field:NotNull val incoterm: Incoterm
+    @field:NotNull val incoterm: Incoterm?
 ) {
     fun toModel(): Exporter {
         return Exporter(
-            code, name, paymentTerms, address.toAddress(), incoterm
+            code, name, paymentTerms!!, address.toAddress(), incoterm!!
         )
     }
 }
@@ -25,7 +25,7 @@ data class NewExporterRequest(
 @Introspected
 data class UpdateExporterRequest(
     @field:NotBlank val name: String,
-    @field:NotNull val paymentTerms: PaymentTerms,
+    @field:NotNull val paymentTerms: PaymentTerms?,
     @field:NotNull @field:Valid val address: AddressRequest,
-    @field:NotNull val incoterm: Incoterm
+    @field:NotNull val incoterm: Incoterm?
 )

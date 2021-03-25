@@ -38,7 +38,7 @@ class Exporter(
     fun update(request: UpdateExporterRequest) {
         this.address = request.address.toAddress()
         this.name = request.name
-        this.paymentTerms = request.paymentTerms
-        this.incoterm = request.incoterm
+        this.paymentTerms = request.paymentTerms!!
+        this.incoterm = request.incoterm!!
     }
 }

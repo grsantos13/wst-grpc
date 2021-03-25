@@ -10,9 +10,15 @@ fun NewExporterRequest.toRequestModel(): Request {
     return Request(
         code = code,
         name = name,
-        paymentTerms = PaymentTerms.valueOf(paymentTerms.name),
+        paymentTerms = when (paymentTerms.name) {
+            "UNKNOWN" -> null
+            else -> PaymentTerms.valueOf(paymentTerms.name)
+        },
         address = address.toRequestModel(),
-        incoterm = Incoterm.valueOf(incoterm.name)
+        incoterm = when (incoterm.name) {
+            "UNKNOWN_INCOTERM" -> null
+            else -> Incoterm.valueOf(incoterm.name)
+        }
     )
 }
 
@@ -20,8 +26,14 @@ fun NewExporterRequest.toRequestModel(): Request {
 fun UpdateExporterRequest.toRequestModel(): UpdateRequest {
     return UpdateRequest(
         name = name,
-        paymentTerms = PaymentTerms.valueOf(paymentTerms.name),
+        paymentTerms = when (paymentTerms.name) {
+            "UNKNOWN" -> null
+            else -> PaymentTerms.valueOf(paymentTerms.name)
+        },
         address = address.toRequestModel(),
-        incoterm = Incoterm.valueOf(incoterm.name)
+        incoterm = when (incoterm.name) {
+            "UNKNOWN_INCOTERM" -> null
+            else -> Incoterm.valueOf(incoterm.name)
+        }
     )
 }
