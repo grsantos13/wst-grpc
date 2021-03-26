@@ -1,0 +1,114 @@
+syntax = "proto3";
+import "shared.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "Order";
+
+package br.com.gn;
+
+service OrderService {
+  rpc create (NewOrderRequest) returns (OrderResponse) {}
+  rpc read (ReadOrderRequest) returns (OrdersResponse) {}
+  rpc update (UpdateOrderRequest) returns (OrderResponse) {}
+  rpc updateObs (UpdateObsOrderRequest) returns (OrderResponse) {}
+  rpc delete (DeleteOrderRequest) returns (OrderResponse) {}
+}
+
+enum Modal {
+  UNKNOWN_MODAL = 0;
+  SEA = 1;
+  ROAD = 2;
+  AIR = 3;
+}
+
+message NewOrderRequest {
+  string origin = 1;
+  string destination = 2;
+  string exporterId = 3;
+  repeated Item items = 4;
+  string number = 5;
+  string importerId = 6;
+  string date = 7;
+  string responsibleId = 8;
+  Modal modal = 9;
+  string necessity = 10;
+  string deadline = 11;
+  string observation = 12;
+  string deliveryPlaceId = 13;
+
+  message Item {
+    string materialId = 1;
+    string quantity = 2;
+  }
+}
+
+message ReadOrderRequest {
+  oneof SearchOrder{
+    string exporterId = 1;
+    string importerId = 2;
+    string number = 3;
+    string origin = 4;
+    string destination = 5;
+  }
+
+  Pageable pageable = 6;
+}
+
+message UpdateOrderRequest {
+  string responsibleId = 1;
+  Modal modal = 2;
+  string necessity = 3;
+  string deadline = 4;
+  string deliveryPlaceId = 5;
+}
+
+message UpdateObsOrderRequest {
+  string observation = 1;
+}
+
+message DeleteOrderRequest {
+  string id = 1;
+}
+
+message OrdersResponse {
+  repeated OrderResponse orders = 1;
+  int32 totalPages = 2;
+  int32 totalSize = 3;
+  int32 numberOfElements = 4;
+}
+
+message OrderResponse {
+  string origin = 1;
+  string destination = 2;
+  string exporter = 3;
+  repeated ItemResponse items = 4;
+  string number = 5;
+  string importer = 6;
+  string date = 7;
+  string responsible = 8;
+  Modal modal = 9;
+  string necessity = 10;
+  string deadline = 11;
+  string observation = 12;
+  string deliveryPlace = 13;
+  EventResponse events = 14;
+  string id = 15;
+
+  message ItemResponse {
+    string code = 1;
+    string description = 2;
+    string quantity = 3;
+    string id = 4;
+  }
+
+  message EventResponse {
+    string availability = 1;
+    string estimatedDeparture = 2;
+    string realDeparture = 3;
+    string estimatedArrival = 4;
+    string realArrival = 5;
+    string preAlert = 6;
+    string wrongNecessityAlert = 7;
+    string id = 8;
+  }
+}
