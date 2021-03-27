@@ -20,7 +20,10 @@ fun NewOrderRequest.toRequestModel(): Request {
         importerId = importerId,
         date = date.toLocalDate(),
         responsibleId = responsibleId,
-        modal = Modal.valueOf(modal.name),
+        modal = when (modal.name) {
+            "UNKNOWN_MODAL" -> null
+            else -> Modal.valueOf(modal.name)
+        },
         necessity = date.toLocalDate(),
         deadline = date.toLocalDate(),
         observation = observation,
