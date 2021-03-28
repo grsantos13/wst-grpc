@@ -164,6 +164,23 @@ internal class OrderEndpointTest(
     }
 
     @Test
+    fun `should not save an order due to invalid order date`() {
+        val request = generateNewOrderRequest(date = LocalDate.now().plusDays(30).toString())
+
+        val exception = assertThrows<StatusRuntimeException> {
+            grpcClient.create(request)
+        }
+
+        with(exception) {
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("Arguments validation error", status.description)
+            assertThat(violations(this), containsInAnyOrder(
+                Pair("date", "must be a date in the past or in the present")
+            ))
+        }
+    }
+
+    @Test
     fun `should not save an order due to invalid parameters`() {
         val request = NewOrderRequest.newBuilder().build()
 
@@ -176,24 +193,38 @@ internal class OrderEndpointTest(
         with(exception) {
             assertEquals(Status.INVALID_ARGUMENT.code, status.code)
             assertEquals("Arguments validation error", status.description)
-            assertThat(violations(this), containsInAnyOrder(
-                Pair("responsibleId", "must not be blank"),
-                Pair("exporterId", "must not be blank"),
-                Pair("deliveryPlaceId", "must not be blank"),
-                Pair("importerId", "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""),
-                Pair("exporterId", "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""),
-                Pair("observation", "must not be blank"),
-                Pair("date", "must not be null"),
-                Pair("responsibleId", "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""),
-                Pair("deadline", "must not be null"),
-                Pair("modal", "must not be null"),
-                Pair("importerId", "must not be blank"),
-                Pair("origin", "must not be blank"),
-                Pair("destination", "must not be blank"),
-                Pair("items", "size must be between 1 and 2147483647"),
-                Pair("necessity", "must not be null"),
-                Pair("deliveryPlaceId", "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""),
-            ))
+            assertThat(
+                violations(this), containsInAnyOrder(
+                    Pair("responsibleId", "must not be blank"),
+                    Pair("exporterId", "must not be blank"),
+                    Pair("deliveryPlaceId", "must not be blank"),
+                    Pair(
+                        "importerId",
+                        "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""
+                    ),
+                    Pair(
+                        "exporterId",
+                        "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""
+                    ),
+                    Pair("observation", "must not be blank"),
+                    Pair("date", "must not be null"),
+                    Pair(
+                        "responsibleId",
+                        "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""
+                    ),
+                    Pair("deadline", "must not be null"),
+                    Pair("modal", "must not be null"),
+                    Pair("importerId", "must not be blank"),
+                    Pair("origin", "must not be blank"),
+                    Pair("destination", "must not be blank"),
+                    Pair("items", "size must be between 1 and 2147483647"),
+                    Pair("necessity", "must not be null"),
+                    Pair(
+                        "deliveryPlaceId",
+                        "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""
+                    ),
+                )
+            )
         }
     }
 
@@ -202,7 +233,8 @@ internal class OrderEndpointTest(
         importerId: String? = null,
         responsibleId: String? = null,
         deliveryPlaceId: String? = null,
-        materialId: String? = null
+        materialId: String? = null,
+        date: String? = null
     ) =
         NewOrderRequest.newBuilder()
             .setOrigin("EUA")
@@ -216,7 +248,7 @@ internal class OrderEndpointTest(
             )
             .setNumber("4200212121")
             .setImporterId(importerId ?: importer!!.id.toString())
-            .setDate(LocalDate.now().toString())
+            .setDate(date ?: LocalDate.now().toString())
             .setResponsibleId(responsibleId ?: user!!.id.toString())
             .setModal(Modal.SEA)
             .setNecessity(LocalDate.now().toString())

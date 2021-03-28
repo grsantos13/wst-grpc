@@ -13,7 +13,6 @@ import java.time.LocalDate
 import java.util.*
 import javax.persistence.EntityManager
 import javax.validation.Valid
-import javax.validation.constraints.FutureOrPresent
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
 import javax.validation.constraints.PastOrPresent
@@ -31,7 +30,7 @@ data class NewOrderRequest(
     @field:NotNull @field:PastOrPresent val date: LocalDate?,
     @field:NotBlank @field:ValidUUID val responsibleId: String,
     @field:NotNull val modal: Modal?,
-    @field:NotNull @field:FutureOrPresent val necessity: LocalDate?,
+    @field:NotNull val necessity: LocalDate?,
     @field:NotNull val deadline: LocalDate?,
     @field:NotBlank @field:Size(max = 1000) val observation: String? = null,
     @field:NotBlank @field:ValidUUID val deliveryPlaceId: String? = null
