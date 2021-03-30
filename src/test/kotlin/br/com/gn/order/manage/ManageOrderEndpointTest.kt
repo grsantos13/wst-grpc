@@ -1,8 +1,8 @@
-package br.com.gn.order
+package br.com.gn.order.manage
 
+import br.com.gn.ManageOrderServiceGrpc
 import br.com.gn.Modal
 import br.com.gn.NewOrderRequest
-import br.com.gn.OrderServiceGrpc
 import br.com.gn.address.Address
 import br.com.gn.deliveryplace.DeliveryPlace
 import br.com.gn.deliveryplace.DeliveryPlaceRepository
@@ -14,6 +14,7 @@ import br.com.gn.importer.Importer
 import br.com.gn.importer.ImporterRepository
 import br.com.gn.material.Material
 import br.com.gn.material.MaterialRepository
+import br.com.gn.order.OrderRepository
 import br.com.gn.order.event.EventRepository
 import br.com.gn.user.User
 import br.com.gn.user.UserRepository
@@ -39,8 +40,8 @@ import java.time.LocalDate
 import java.util.*
 
 @MicronautTest(transactional = false)
-internal class OrderEndpointTest(
-    private val grpcClient: OrderServiceGrpc.OrderServiceBlockingStub,
+internal class CreateOrderEndpointTest(
+    private val grpcClient: ManageOrderServiceGrpc.ManageOrderServiceBlockingStub,
     private val exporterRepository: ExporterRepository,
     private val importerRepository: ImporterRepository,
     private val materialRepository: MaterialRepository,
@@ -174,9 +175,11 @@ internal class OrderEndpointTest(
         with(exception) {
             assertEquals(Status.INVALID_ARGUMENT.code, status.code)
             assertEquals("Arguments validation error", status.description)
-            assertThat(violations(this), containsInAnyOrder(
-                Pair("date", "must be a date in the past or in the present")
-            ))
+            assertThat(
+                violations(this), containsInAnyOrder(
+                    Pair("date", "must be a date in the past or in the present")
+                )
+            )
         }
     }
 
@@ -262,5 +265,5 @@ internal class OrderEndpointTest(
 class Client {
     @Bean
     fun blockingStub(@GrpcChannel(GrpcServerChannel.NAME) channel: ManagedChannel) =
-        OrderServiceGrpc.newBlockingStub(channel)
+        ManageOrderServiceGrpc.newBlockingStub(channel)
 }

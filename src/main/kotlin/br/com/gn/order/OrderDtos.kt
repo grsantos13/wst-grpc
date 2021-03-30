@@ -83,3 +83,4 @@ data class ItemRequest(
     @field:NotBlank @field:ValidUUID val materialId: String,
     @field:NotNull @field:Positive val quantity: BigDecimal?
 )
+

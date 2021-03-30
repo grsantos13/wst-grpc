@@ -1,5 +1,6 @@
 package br.com.gn.order
 
+import br.com.gn.OrderResponse
 import br.com.gn.deliveryplace.DeliveryPlace
 import br.com.gn.exporter.Exporter
 import br.com.gn.importer.Importer
@@ -69,7 +70,7 @@ class Order(
     @field:NotNull
     @field:Valid
     @field:Size(min = 1)
-    @OneToMany(mappedBy = "order")
+    @OneToMany(mappedBy = "order", fetch = EAGER)
     var items: List<Item>? = null
 
     @field:Valid
@@ -79,6 +80,43 @@ class Order(
 
     fun includeItems(items: List<Item>) {
         this.items = items
+    }
+
+    fun toGrpcOrderResponse(): OrderResponse {
+        return OrderResponse.newBuilder()
+            .setOrigin(origin)
+            .setDestination(destination)
+            .setExporter(exporter.name)
+            .addAllItems(items!!.map {
+                OrderResponse.ItemResponse.newBuilder()
+                    .setId(it.id.toString())
+                    .setCode(it.material.code).setDescription(it.material.description)
+                    .setQuantity(it.quantity.toString())
+                    .build()
+            })
+            .setNumber(number)
+            .setImporter(importer.plant)
+            .setDate(date.toString())
+            .setResponsible(responsible.name)
+            .setModal(br.com.gn.Modal.valueOf(modal.name))
+            .setNecessity(necessity.toString())
+            .setDeadline(deadline.toString())
+            .setObservation(observation ?: "")
+            .setDeliveryPlace(deliveryPlace?.name ?: "")
+            .setId(id.toString())
+            .setEvents(
+                OrderResponse.EventResponse.newBuilder()
+                    .setAvailability(event.availability.toString())
+                    .setEstimatedDeparture(event.estimatedDeparture.toString())
+                    .setRealDeparture(event.realDeparture.toString())
+                    .setEstimatedArrival(event.estimatedArrival.toString())
+                    .setRealArrival(event.realArrival.toString())
+                    .setPreAlert(event.preAlert.toString())
+                    .setWrongNecessityAlert(event.wrongNecessityAlert.toString())
+                    .setId(event.id.toString())
+                    .build()
+            )
+            .build()
     }
 
 }

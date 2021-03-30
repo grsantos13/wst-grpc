@@ -6,12 +6,15 @@ option java_outer_classname = "Order";
 
 package br.com.gn;
 
-service OrderService {
+service ManageOrderService {
   rpc create (NewOrderRequest) returns (OrderResponse) {}
-  rpc read (ReadOrderRequest) returns (OrdersResponse) {}
   rpc update (UpdateOrderRequest) returns (OrderResponse) {}
   rpc updateObs (UpdateObsOrderRequest) returns (OrderResponse) {}
   rpc delete (DeleteOrderRequest) returns (OrderResponse) {}
+}
+
+service ReadOrderService {
+  rpc read (ReadOrderRequest) returns (OrdersResponse) {}
 }
 
 enum Modal {

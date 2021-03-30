@@ -3,9 +3,7 @@ package br.com.gn.material
 import br.com.gn.NewMaterialRequest
 import br.com.gn.ReadMaterialRequest
 import br.com.gn.UpdateMaterialRequest
-import io.micronaut.data.model.Pageable
-import io.micronaut.data.model.Sort
-import io.micronaut.data.model.Sort.Order.Direction
+import br.com.gn.utils.toPageable
 import java.math.BigDecimal
 import br.com.gn.material.NewMaterialRequest as Request
 import br.com.gn.material.ReadMaterialRequest as ReadRequest
@@ -35,9 +33,8 @@ fun UpdateMaterialRequest.toRequestModel(): UpdateRequest {
 }
 
 fun ReadMaterialRequest.toRequestModel(): ReadRequest {
-    val pageable = with(this.pageable) {
-        Pageable.from(page, size, Sort.of(Sort.Order(orderBy, Direction.valueOf(direction.name), true)))
-    }
+    val pageable = pageable.toPageable()
+
     return ReadRequest(
         filter = SearchMaterialFilter.from(searchMaterialCase),
         pageable = pageable,
