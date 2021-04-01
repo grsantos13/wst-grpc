@@ -13,12 +13,19 @@ service ExporterService {
   rpc delete (DeleteExporterRequest) returns (ExporterResponse) {}
 }
 
+enum Currency {
+  UNKNOWN_CUR = 0;
+  EUR = 1;
+  USD = 2;
+  BRL = 3;
+}
 message NewExporterRequest {
   string code = 1;
   string name = 2;
   PaymentTerms paymentTerms = 3;
   Address address = 4;
   Incoterm incoterm = 5;
+  Currency currency = 7;
 }
 
 message ReadExporterRequest{
@@ -35,6 +42,7 @@ message UpdateExporterRequest {
   PaymentTerms paymentTerms = 3;
   Address address = 4;
   Incoterm incoterm = 5;
+  Currency currency = 6;
 }
 
 message DeleteExporterRequest {
@@ -48,4 +56,5 @@ message ExporterResponse {
   PaymentTerms paymentTerms = 4;
   Address address = 5;
   Incoterm incoterm = 6;
+  Currency currency = 7;
 }

@@ -55,7 +55,7 @@ class ProcessEndpoint(
 
     private fun grpcProcessResponse(process: Process) = ProcessResponse.newBuilder()
         .setCountry(process.operation.country)
-        .setType(OperationType.valueOf(process.operation.type.name))
+        .setType(OperationType.valueOf(process.operation.type!!.name))
         .setId(process.id.toString())
         .setName(process.name)
         .setResponsible(process.responsible.name)

@@ -2,14 +2,11 @@ package br.com.gn.order
 
 import br.com.gn.NewOrderRequest
 import br.com.gn.ReadOrderRequest
-import br.com.gn.ReadOrderRequest.SearchOrderCase.DESTINATION
-import br.com.gn.ReadOrderRequest.SearchOrderCase.EXPORTERID
-import br.com.gn.ReadOrderRequest.SearchOrderCase.IMPORTERID
-import br.com.gn.ReadOrderRequest.SearchOrderCase.NUMBER
-import br.com.gn.ReadOrderRequest.SearchOrderCase.ORIGIN
+import br.com.gn.ReadOrderRequest.SearchOrderCase.*
 import br.com.gn.UpdateOrderRequest
 import br.com.gn.order.read.Filter
 import br.com.gn.utils.toBigDecimal
+import br.com.gn.utils.toEnum
 import br.com.gn.utils.toLocalDate
 import javax.validation.ConstraintViolationException
 import javax.validation.Validator
@@ -31,10 +28,7 @@ fun NewOrderRequest.toRequestModel(): Request {
         importerId = importerId,
         date = date.toLocalDate(),
         responsibleId = responsibleId,
-        modal = when (modal.name) {
-            "UNKNOWN_MODAL" -> null
-            else -> Modal.valueOf(modal.name)
-        },
+        modal = modal.name.toEnum<Modal>(),
         necessity = date.toLocalDate(),
         deadline = date.toLocalDate(),
         observation = observation,
@@ -63,10 +57,7 @@ fun UpdateOrderRequest.toRequestModel(): UpdateRequest {
     return UpdateRequest(
         deadline = this.deadline,
         deliveryPlaceId = this.deliveryPlaceId,
-        modal = when (this.modal.name) {
-            "UNKNOWN_MODAL" -> null
-            else -> Modal.valueOf(this.modal.name)
-        },
+        modal = modal.name.toEnum<Modal>(),
         necessity = this.necessity,
         responsibleId = this.responsibleId,
     )

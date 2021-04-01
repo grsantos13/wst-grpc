@@ -27,7 +27,8 @@ class Exporter(
     @field:NotBlank @Column(nullable = false) var name: String,
     @field:NotNull @Enumerated(STRING) @Column(nullable = false) var paymentTerms: PaymentTerms,
     @field:NotNull @Embedded var address: Address,
-    @field:NotNull @Enumerated(STRING) @Column(nullable = false) var incoterm: Incoterm
+    @field:NotNull @Enumerated(STRING) @Column(nullable = false) var incoterm: Incoterm,
+    @field:NotNull @Enumerated(STRING) @Column(nullable = false) var currency: Currency
 ) {
 
 
@@ -40,5 +41,6 @@ class Exporter(
         this.name = request.name
         this.paymentTerms = request.paymentTerms!!
         this.incoterm = request.incoterm!!
+        this.currency = request.currency!!
     }
 }

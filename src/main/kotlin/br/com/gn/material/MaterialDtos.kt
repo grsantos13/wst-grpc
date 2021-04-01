@@ -41,7 +41,7 @@ data class NewMaterialRequest(
 data class UpdateMaterialRequest(
     @field:NotBlank @field:Size(max = 100) val description: String,
     @field:NotBlank @field:Size(max = 10) @field:Pattern(regexp = "[0-9]{8}") val ncm: String,
-    @field:NotNull @field:Positive val unitPrice: BigDecimal,
+    @field:NotNull @field:Positive val unitPrice: BigDecimal?,
     @field:NotNull val pricerPerThousand: Boolean,
     @field:NotNull val preShipmentLicense: Boolean,
     @field:NotBlank val planning: String,

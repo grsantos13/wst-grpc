@@ -78,7 +78,7 @@ class Material(
         this.planning = request.planning
         this.preShipmentLicense = request.preShipmentLicense
         this.pricerPerThousand = request.pricerPerThousand
-        this.unitPrice = request.unitPrice
+        this.unitPrice = request.unitPrice!!
     }
 
     fun updateNcmDescription(ncmDescription: String) {

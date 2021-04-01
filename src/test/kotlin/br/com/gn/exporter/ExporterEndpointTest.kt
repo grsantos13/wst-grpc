@@ -6,6 +6,7 @@ import br.com.gn.ExporterServiceGrpc
 import br.com.gn.Incoterm
 import br.com.gn.NewExporterRequest
 import br.com.gn.PaymentTerms
+import br.com.gn.Currency
 import br.com.gn.ReadExporterRequest
 import br.com.gn.UpdateExporterRequest
 import br.com.gn.util.StatusRuntimeExceptionUtils.Companion.violations
@@ -26,6 +27,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.*
 import br.com.gn.address.Address as ExporterAddress
+import br.com.gn.exporter.Currency as ExporterCurrency
 import br.com.gn.exporter.Incoterm as ExporterIncoterm
 
 @MicronautTest(transactional = false)
@@ -55,6 +57,7 @@ internal class ExporterEndpointTest(
                 .setIncoterm(Incoterm.CIF)
                 .setPaymentTerms(PaymentTerms.E30)
                 .setName("Exporter test")
+                .setCurrency(Currency.EUR)
                 .build()
         )
 
@@ -80,6 +83,7 @@ internal class ExporterEndpointTest(
                     .setIncoterm(Incoterm.CIF)
                     .setPaymentTerms(PaymentTerms.E30)
                     .setName("Exporter test")
+                    .setCurrency(Currency.EUR)
                     .build()
             )
         }
@@ -108,6 +112,7 @@ internal class ExporterEndpointTest(
                     Pair("city", "must not be blank"),
                     Pair("country", "must not be blank"),
                     Pair("incoterm", "must not be null"),
+                    Pair("currency", "must not be null"),
                     Pair("zipCode", "must not be blank")
                 )
             )
@@ -151,6 +156,7 @@ internal class ExporterEndpointTest(
                 .setIncoterm(Incoterm.CIF)
                 .setPaymentTerms(PaymentTerms.E30)
                 .setName("Exporter test")
+                .setCurrency(Currency.EUR)
                 .build()
         )
 
@@ -175,6 +181,7 @@ internal class ExporterEndpointTest(
                     .setIncoterm(Incoterm.CIF)
                     .setPaymentTerms(PaymentTerms.E30)
                     .setName("Exporter test")
+                    .setCurrency(Currency.EUR)
                     .build()
             )
         }
@@ -205,6 +212,7 @@ internal class ExporterEndpointTest(
                     Pair("country", "must not be blank"),
                     Pair("incoterm", "must not be null"),
                     Pair("zipCode", "must not be blank"),
+                    Pair("currency", "must not be null"),
                     Pair("id", "must not be blank"),
                     Pair(
                         "id",
@@ -267,11 +275,12 @@ internal class ExporterEndpointTest(
 
     private fun createExporter(code: String? = null, name: String? = null) =
         Exporter(
-            code ?: "12345678",
-            name ?: "Test",
-            br.com.gn.exporter.PaymentTerms.E30,
-            ExporterAddress("Test", "test", "test", "test"),
-            ExporterIncoterm.CIF
+            code = code ?: "12345678",
+            name = name ?: "Test",
+            paymentTerms = br.com.gn.exporter.PaymentTerms.E30,
+            address = ExporterAddress("Test", "test", "test", "test"),
+            incoterm = ExporterIncoterm.CIF,
+            currency = ExporterCurrency.EUR
         )
 
 }

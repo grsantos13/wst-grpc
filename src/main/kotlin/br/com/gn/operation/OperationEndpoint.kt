@@ -1,19 +1,16 @@
 package br.com.gn.operation
 
-import br.com.gn.DeleteOperationRequest
+import br.com.gn.*
 import br.com.gn.NewOperationRequest
-import br.com.gn.OperationResponse
-import br.com.gn.OperationServiceGrpc
-import br.com.gn.OperationType.valueOf
-import br.com.gn.OperationsResponse
-import br.com.gn.ReadOperationRequest
 import br.com.gn.shared.exception.ErrorHandler
 import br.com.gn.shared.exception.ObjectAlreadyExistsException
 import br.com.gn.shared.exception.ObjectNotFoundException
+import br.com.gn.utils.toEnum
 import io.grpc.stub.StreamObserver
 import java.util.*
 import javax.inject.Singleton
 import javax.transaction.Transactional
+import br.com.gn.OperationType as GrpcOperationType
 
 @ErrorHandler
 @Singleton
@@ -26,12 +23,12 @@ class OperationEndpoint(
         if (request.country.isNullOrBlank())
             throw IllegalArgumentException("Country must not be blank")
 
-        if (request.type.name == "UNKNOWN_OPERATION")
-            throw IllegalArgumentException("Type must not be blank")
+        val operationType = request.type.name.toEnum<OperationType>()
+            ?: throw IllegalArgumentException("Type must not be blank")
 
         val exists = repository.existsByCountryAndType(
             request.country,
-            OperationType.valueOf(request.type.name)
+            operationType
         )
 
         if (exists)
@@ -44,7 +41,7 @@ class OperationEndpoint(
             OperationResponse.newBuilder()
                 .setId(operation.id.toString())
                 .setCountry(operation.country)
-                .setType(valueOf(operation.type.name))
+                .setType(GrpcOperationType.valueOf(operationType.name))
                 .build()
         )
         responseObserver.onCompleted()
@@ -58,7 +55,7 @@ class OperationEndpoint(
                 OperationResponse.newBuilder()
                     .setId(it.id.toString())
                     .setCountry(it.country)
-                    .setType(valueOf(it.type.name))
+                    .setType(GrpcOperationType.valueOf(it.type!!.name))
                     .build()
             }
 
@@ -83,7 +80,7 @@ class OperationEndpoint(
             OperationResponse.newBuilder()
                 .setId(operation.id.toString())
                 .setCountry(operation.country)
-                .setType(valueOf(operation.type.name))
+                .setType(GrpcOperationType.valueOf(operation.type!!.name))
                 .build()
         )
         responseObserver.onCompleted()

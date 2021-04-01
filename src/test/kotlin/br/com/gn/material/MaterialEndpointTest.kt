@@ -1,9 +1,7 @@
 package br.com.gn.material
 
-import br.com.gn.MaterialServiceGrpc
+import br.com.gn.*
 import br.com.gn.NewMaterialRequest.newBuilder
-import br.com.gn.OrderDirection
-import br.com.gn.Pageable
 import br.com.gn.ReadMaterialRequest
 import br.com.gn.UpdateMaterialRequest
 import br.com.gn.client.NcmSearchRequest
@@ -25,9 +23,11 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.mockito.Mockito
 import java.math.BigDecimal
+import java.util.*
 
 @MicronautTest(transactional = false)
 internal class MaterialEndpointTest(
@@ -266,9 +266,7 @@ internal class MaterialEndpointTest(
 
         val exception = assertThrows<StatusRuntimeException> {
             grpcClient.update(
-                UpdateMaterialRequest.newBuilder().setId(
-                    createMaterial.id.toString()
-                ).build()
+                UpdateMaterialRequest.newBuilder().build()
             )
         }
 
@@ -277,11 +275,16 @@ internal class MaterialEndpointTest(
             assertEquals("Arguments validation error", status.description)
             assertThat(
                 violations(this), containsInAnyOrder(
-                    Pair("unitPrice", "must be greater than 0"),
+                    Pair("unitPrice", "must not be null"),
                     Pair("ncm", "must match \"[0-9]{8}\""),
                     Pair("planning", "must not be blank"),
                     Pair("ncm", "must not be blank"),
-                    Pair("description", "must not be blank")
+                    Pair("description", "must not be blank"),
+                    Pair("id", "must not be blank"),
+                    Pair(
+                        "id",
+                        "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""
+                    )
                 )
             )
         }
@@ -312,6 +315,83 @@ internal class MaterialEndpointTest(
         assertEquals(Status.INVALID_ARGUMENT.code, exception.status.code)
         assertEquals("Ncm ${request.ncm} not found in Siscomex", exception.status.description)
 
+    }
+
+    @Test
+    fun `should not update a material due to not finding the material`() {
+
+        val randomId = UUID.randomUUID().toString()
+        val request = UpdateMaterialRequest.newBuilder()
+            .setId(randomId)
+            .setDescription("Material teste Alterado")
+            .setNcm("88026000")
+            .setPlanning("Gustavo")
+            .setPreShipmentLicense(false)
+            .setPricePerThousand(true)
+            .setUnitPrice("1290")
+            .build()
+
+        val exception = assertThrows<StatusRuntimeException> {
+            grpcClient.update(request)
+        }
+
+        assertEquals(Status.NOT_FOUND.code, exception.status.code)
+        assertEquals("Material not found for id $randomId", exception.status.description)
+
+    }
+
+    @Test
+    fun `should delete a material successfully`() {
+        val createMaterial = createMaterial()
+        repository.save(createMaterial)
+
+        val request = DeleteMaterialRequest.newBuilder()
+            .setId(createMaterial.id.toString())
+            .build()
+
+        assertDoesNotThrow { grpcClient.delete(request) }
+    }
+
+    @Test
+    fun `should not delete a material for not finding it`() {
+        val randomId = UUID.randomUUID().toString()
+        val exception = assertThrows<StatusRuntimeException> {
+            val request = DeleteMaterialRequest.newBuilder()
+                .setId(randomId)
+                .build()
+
+            grpcClient.delete(request)
+
+        }
+
+        assertEquals(Status.NOT_FOUND.code, exception.status.code)
+        assertEquals("Material not found for id $randomId", exception.status.description)
+    }
+
+    @Test
+    fun `should not delete a material due to invalid arguments`() {
+        val createMaterial = createMaterial()
+        repository.save(createMaterial)
+
+        val exception = assertThrows<StatusRuntimeException> {
+            grpcClient.delete(
+                DeleteMaterialRequest.newBuilder().build()
+            )
+        }
+
+        with(exception) {
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("Arguments validation error", status.description)
+            assertThat(
+                violations(this), containsInAnyOrder(
+                    Pair("id", "must not be blank"),
+                    Pair(
+                        "id",
+                        "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""
+                    )
+                )
+            )
+        }
     }
 
     private fun generatePageable() = Pageable.newBuilder()

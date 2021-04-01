@@ -13,11 +13,17 @@ data class NewExporterRequest(
     @field:NotBlank val name: String,
     @field:NotNull val paymentTerms: PaymentTerms?,
     @field:NotNull @field:Valid val address: AddressRequest,
-    @field:NotNull val incoterm: Incoterm?
+    @field:NotNull val incoterm: Incoterm?,
+    @field:NotNull val currency: Currency?
 ) {
     fun toModel(): Exporter {
         return Exporter(
-            code, name, paymentTerms!!, address.toAddress(), incoterm!!
+            code = code,
+            name = name,
+            paymentTerms = paymentTerms!!,
+            address = address.toAddress(),
+            incoterm = incoterm!!,
+            currency = currency!!
         )
     }
 }
@@ -27,5 +33,6 @@ data class UpdateExporterRequest(
     @field:NotBlank val name: String,
     @field:NotNull val paymentTerms: PaymentTerms?,
     @field:NotNull @field:Valid val address: AddressRequest,
-    @field:NotNull val incoterm: Incoterm?
+    @field:NotNull val incoterm: Incoterm?,
+    @field:NotNull val currency: Currency?
 )

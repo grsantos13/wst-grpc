@@ -7,12 +7,14 @@ import br.com.gn.material.SearchMaterialFilter.DESCRIPTION
 import br.com.gn.material.SearchMaterialFilter.NCM
 import br.com.gn.shared.exception.ObjectAlreadyExistsException
 import br.com.gn.shared.exception.ObjectNotFoundException
+import br.com.gn.shared.validation.ValidUUID
 import io.micronaut.data.model.Page
 import io.micronaut.validation.Validated
 import java.util.*
 import javax.inject.Singleton
 import javax.transaction.Transactional
 import javax.validation.Valid
+import javax.validation.constraints.NotBlank
 
 @Validated
 @Singleton
@@ -38,7 +40,7 @@ class MaterialService(
     }
 
     @Transactional
-    fun update(@Valid request: UpdateMaterialRequest, id: String): Material {
+    fun update(@Valid request: UpdateMaterialRequest, @NotBlank @ValidUUID id: String): Material {
         val material = repository.findById(UUID.fromString(id))
             .orElseThrow { ObjectNotFoundException("Material not found for id $id") }
 
@@ -63,7 +65,7 @@ class MaterialService(
     }
 
     @Transactional
-    fun delete(id: String): Material {
+    fun delete(@NotBlank @ValidUUID id: String): Material {
         val material = repository.findById(UUID.fromString(id))
             .orElseThrow { ObjectNotFoundException("Material not found for id $id") }
 

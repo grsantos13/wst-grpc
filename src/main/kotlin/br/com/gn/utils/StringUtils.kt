@@ -24,3 +24,9 @@ fun String.toBigDecimal(): BigDecimal? {
         throw IllegalArgumentException("Could not parse BigDecimal from $this")
     }
 }
+
+inline fun <reified T : Enum<T>> String.toEnum(): T? {
+    if (startsWith("UNK"))
+        return null
+    return enumValueOf<T>(this)
+}

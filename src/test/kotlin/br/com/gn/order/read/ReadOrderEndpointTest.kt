@@ -7,10 +7,7 @@ import br.com.gn.ReadOrderServiceGrpc
 import br.com.gn.address.Address
 import br.com.gn.deliveryplace.DeliveryPlace
 import br.com.gn.deliveryplace.DeliveryPlaceRepository
-import br.com.gn.exporter.Exporter
-import br.com.gn.exporter.ExporterRepository
-import br.com.gn.exporter.Incoterm
-import br.com.gn.exporter.PaymentTerms
+import br.com.gn.exporter.*
 import br.com.gn.importer.Importer
 import br.com.gn.importer.ImporterRepository
 import br.com.gn.material.Material
@@ -63,20 +60,22 @@ internal class ReadOrderEndpointTest(
         deliveryPlace = deliveryPlaceRepository.save(DeliveryPlace("LOCAL DE ENTREGA"))
         exporterOrderOne = exporterRepository.save(
             Exporter(
-                "12345678",
-                "Test",
-                PaymentTerms.E30,
-                Address("Test", "test", "test", "test"),
-                Incoterm.CIF
+                code = "12345678",
+                name = "Test",
+                paymentTerms = PaymentTerms.E30,
+                address = Address("Test", "test", "test", "test"),
+                incoterm = Incoterm.CIF,
+                currency = Currency.EUR
             )
         )
         exporterOrderTwo = exporterRepository.save(
             Exporter(
-                "12345677",
-                "Test",
-                PaymentTerms.E30,
-                Address("Test", "test", "test", "test"),
-                Incoterm.CIF
+                code = "12345677",
+                name = "Test",
+                paymentTerms = PaymentTerms.E30,
+                address = Address("Test", "test", "test", "test"),
+                incoterm = Incoterm.CIF,
+                currency = Currency.EUR
             )
         )
         importerOrderOne = importerRepository.save(Importer(

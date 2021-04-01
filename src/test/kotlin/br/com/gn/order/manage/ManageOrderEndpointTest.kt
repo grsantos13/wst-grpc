@@ -4,6 +4,7 @@ import br.com.gn.*
 import br.com.gn.address.Address
 import br.com.gn.deliveryplace.DeliveryPlace
 import br.com.gn.deliveryplace.DeliveryPlaceRepository
+import br.com.gn.exporter.Currency
 import br.com.gn.exporter.Exporter
 import br.com.gn.exporter.ExporterRepository
 import br.com.gn.exporter.Incoterm
@@ -63,7 +64,14 @@ internal class ManageOrderEndpointTest(
         user = userRepository.save(User("email@email.com", "Teste"))
         deliveryPlace = deliveryPlaceRepository.save(DeliveryPlace("LOCAL DE ENTREGA"))
         exporter = exporterRepository.save(
-            Exporter("12345678", "Test", PaymentTerms.E30, Address("Test", "test", "test", "test"), Incoterm.CIF)
+            Exporter(
+                code = "12345678",
+                name = "Test",
+                paymentTerms = PaymentTerms.E30,
+                address = Address("Test", "test", "test", "test"),
+                incoterm = Incoterm.CIF,
+                currency = Currency.EUR
+            )
         )
 
         importer = importerRepository.save(Importer(

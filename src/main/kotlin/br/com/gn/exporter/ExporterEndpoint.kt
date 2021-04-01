@@ -5,6 +5,7 @@ import br.com.gn.ExporterResponse
 import br.com.gn.ExporterServiceGrpc
 import br.com.gn.ExportersResponse
 import br.com.gn.Incoterm
+import br.com.gn.Currency
 import br.com.gn.NewExporterRequest
 import br.com.gn.PaymentTerms
 import br.com.gn.ReadExporterRequest
@@ -64,6 +65,7 @@ class ExporterEndpoint(
         .setName(exporter.name)
         .setPaymentTerms(PaymentTerms.valueOf(exporter.paymentTerms.name))
         .setAddress(exporter.address.toGrpcAddress())
+        .setCurrency(Currency.valueOf(exporter.currency.name))
         .setIncoterm(Incoterm.valueOf(exporter.incoterm.name))
         .build()
 }

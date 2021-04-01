@@ -3,6 +3,7 @@ package br.com.gn.material
 import br.com.gn.NewMaterialRequest
 import br.com.gn.ReadMaterialRequest
 import br.com.gn.UpdateMaterialRequest
+import br.com.gn.utils.toBigDecimal
 import br.com.gn.utils.toPageable
 import java.math.BigDecimal
 import br.com.gn.material.NewMaterialRequest as Request
@@ -25,7 +26,7 @@ fun UpdateMaterialRequest.toRequestModel(): UpdateRequest {
     return UpdateRequest(
         description = description,
         ncm = ncm,
-        unitPrice = if (unitPrice.isNullOrBlank()) BigDecimal.ZERO else BigDecimal(unitPrice),
+        unitPrice = unitPrice.toBigDecimal(),
         pricerPerThousand = pricePerThousand,
         preShipmentLicense = preShipmentLicense,
         planning = planning

@@ -21,7 +21,7 @@ import javax.validation.constraints.NotNull
 )
 class Operation(
     @field:NotBlank @Column(nullable = false, updatable = false) val country: String,
-    @field:NotNull @Enumerated(STRING) @Column(nullable = false, updatable = false) val type: OperationType
+    @field:NotNull @Enumerated(STRING) @Column(nullable = false, updatable = false) val type: OperationType?
 ) {
 
     @Id
