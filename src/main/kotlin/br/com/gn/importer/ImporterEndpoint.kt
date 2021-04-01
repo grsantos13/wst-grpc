@@ -61,5 +61,7 @@ class ImporterEndpoint(
         .setAddress(importer.address.toGrpcAddress())
         .setPlant(importer.plant)
         .setId(importer.id.toString())
+        .setFiscalNumber(importer.fiscalNumber)
+        .setFiscalName(importer.fiscalName)
         .build()
 }

@@ -17,6 +17,8 @@ service ImporterService {
 message NewImporterRequest {
   string plant = 1;
   Address address = 2;
+  string fiscalName = 3;
+  string fiscalNumber = 4;
 }
 
 message ReadImporterRequest{
@@ -40,4 +42,6 @@ message ImporterResponse {
   string id = 1;
   string plant = 2;
   Address address = 3;
+  string fiscalName = 4;
+  string fiscalNumber = 5;
 }

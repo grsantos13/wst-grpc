@@ -79,8 +79,18 @@ internal class ReadOrderEndpointTest(
                 Incoterm.CIF
             )
         )
-        importerOrderOne = importerRepository.save(Importer("2422", Address("Test", "test", "test", "test")))
-        importerOrderTwo = importerRepository.save(Importer("2195", Address("Test", "test", "test", "test")))
+        importerOrderOne = importerRepository.save(Importer(
+            plant = "2422",
+            fiscalName = "COMPANY LLC",
+            fiscalNumber = "27679970000111",
+            address = Address("Test", "test", "test", "test")
+        ))
+        importerOrderTwo = importerRepository.save(Importer(
+            plant = "2195",
+            fiscalName = "COMPANY LLC",
+            fiscalNumber = "27679970000111",
+            address = Address("Test", "test", "test", "test")
+        ))
 
         val material = Material(
             code = "12345678",

@@ -1,10 +1,8 @@
 package br.com.gn.importer
 
+import br.com.gn.*
 import br.com.gn.Address
-import br.com.gn.DeleteImporterRequest
-import br.com.gn.ImporterServiceGrpc
 import br.com.gn.NewImporterRequest
-import br.com.gn.ReadImporterRequest
 import br.com.gn.UpdateImporterRequest
 import br.com.gn.util.StatusRuntimeExceptionUtils.Companion.violations
 import io.grpc.ManagedChannel
@@ -18,9 +16,7 @@ import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.containsInAnyOrder
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertDoesNotThrow
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.*
@@ -40,21 +36,26 @@ internal class ImporterEndpointTest(
     @Test
     fun `should create an importer successfully`() {
 
-        val response = grpcClient.create(
-            NewImporterRequest.newBuilder()
-                .setAddress(
-                    Address.newBuilder()
-                        .setZipCode("123456789")
-                        .setStreet("Avenida Invernada")
-                        .setCountry("Brazil")
-                        .setCity("Valinhos")
-                        .build()
-                )
-                .setPlant("2422")
-                .build()
-        )
+        val request = NewImporterRequest.newBuilder()
+            .setAddress(
+                Address.newBuilder()
+                    .setZipCode("123456789")
+                    .setStreet("Avenida Invernada")
+                    .setCountry("Brazil")
+                    .setCity("Valinhos")
+                    .build()
+            )
+            .setFiscalName("COMPANY LLC")
+            .setFiscalNumber("27679970000111")
+            .setPlant("2422")
+            .build()
+        val response = grpcClient.create(request)
 
         assertNotNull(response.id)
+        assertEquals(request.address, response.address)
+        assertEquals(request.fiscalName, response.fiscalName)
+        assertEquals(request.fiscalNumber, response.fiscalNumber)
+        assertEquals(request.plant, response.plant)
     }
 
     @Test
@@ -73,6 +74,8 @@ internal class ImporterEndpointTest(
                             .setCity("Valinhos")
                             .build()
                     )
+                    .setFiscalName("COMPANY LLC")
+                    .setFiscalNumber("27679970000111")
                     .setPlant("2422")
                     .build()
             )
@@ -100,7 +103,13 @@ internal class ImporterEndpointTest(
                     Pair("street", "must not be blank"),
                     Pair("city", "must not be blank"),
                     Pair("country", "must not be blank"),
-                    Pair("zipCode", "must not be blank")
+                    Pair("zipCode", "must not be blank"),
+                    Pair("fiscalName", "must not be blank"),
+                    Pair("fiscalNumber", "must not be blank"),
+                    Pair(
+                        "fiscalNumber",
+                        "must match \"([0-9]{2}[.]?[0-9]{3}[.]?[0-9]{3}[/]?[0-9]{4}[-]?[0-9]{2})\""
+                    )
                 )
             )
         }
@@ -252,7 +261,9 @@ internal class ImporterEndpointTest(
     private fun createImporter(plant: String? = null) =
         Importer(
             plant = plant ?: "2422",
-            address = ImporterAddress("Test", "test", "test", "test")
+            address = ImporterAddress("Test", "test", "test", "test"),
+            fiscalName = "COMPANY LLC",
+            fiscalNumber = "27679970000111"
         )
 
 }

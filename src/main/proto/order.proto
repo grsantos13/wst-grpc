@@ -18,13 +18,6 @@ service ReadOrderService {
   rpc read (ReadOrderRequest) returns (OrdersResponse) {}
 }
 
-enum Modal {
-  UNKNOWN_MODAL = 0;
-  SEA = 1;
-  ROAD = 2;
-  AIR = 3;
-}
-
 message NewOrderRequest {
   string origin = 1;
   string destination = 2;

@@ -9,7 +9,9 @@ import br.com.gn.importer.UpdateImporterRequest as UpdateRequest
 fun NewImporterRequest.toRequestModel(): Request {
     return Request(
         plant = plant,
-        address = address.toRequestModel()
+        address = address.toRequestModel(),
+        fiscalName = fiscalName,
+        fiscalNumber = fiscalNumber
     )
 }
 

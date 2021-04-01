@@ -66,7 +66,12 @@ internal class ManageOrderEndpointTest(
             Exporter("12345678", "Test", PaymentTerms.E30, Address("Test", "test", "test", "test"), Incoterm.CIF)
         )
 
-        importer = importerRepository.save(Importer("2422", Address("Test", "test", "test", "test")))
+        importer = importerRepository.save(Importer(
+            plant = "2422",
+            fiscalName = "COMPANY LLC",
+            fiscalNumber = "27679970000111",
+            address = Address("Test", "test", "test", "test")
+        ))
         val material = Material(
             code = "12345678",
             description = "Material teste",
