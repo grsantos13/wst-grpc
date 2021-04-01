@@ -1,8 +1,6 @@
 package br.com.gn.order.manage
 
-import br.com.gn.ManageOrderServiceGrpc
-import br.com.gn.Modal
-import br.com.gn.NewOrderRequest
+import br.com.gn.*
 import br.com.gn.address.Address
 import br.com.gn.deliveryplace.DeliveryPlace
 import br.com.gn.deliveryplace.DeliveryPlaceRepository
@@ -14,6 +12,8 @@ import br.com.gn.importer.Importer
 import br.com.gn.importer.ImporterRepository
 import br.com.gn.material.Material
 import br.com.gn.material.MaterialRepository
+import br.com.gn.order.Item
+import br.com.gn.order.Order
 import br.com.gn.order.OrderRepository
 import br.com.gn.order.event.EventRepository
 import br.com.gn.user.User
@@ -38,9 +38,10 @@ import org.junit.jupiter.api.assertThrows
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.*
+import br.com.gn.order.Modal as OrderModal
 
 @MicronautTest(transactional = false)
-internal class CreateOrderEndpointTest(
+internal class ManageOrderEndpointTest(
     private val grpcClient: ManageOrderServiceGrpc.ManageOrderServiceBlockingStub,
     private val exporterRepository: ExporterRepository,
     private val importerRepository: ImporterRepository,
@@ -229,6 +230,338 @@ internal class CreateOrderEndpointTest(
                 )
             )
         }
+    }
+
+    @Test
+    fun `should update an order successfully`() {
+        val createdOrder = orderRepository.save(generateOrder())
+        val newResponsible = userRepository.save(User("teste@teste.com", "Teste Update"))
+        val newDeliveryPlace = deliveryPlaceRepository.save(DeliveryPlace("Delivery Place 2"))
+        val response = grpcClient.update(
+            UpdateOrderRequest.newBuilder()
+                .setDeadline("2021-07-18")
+                .setDeliveryPlaceId(newDeliveryPlace.id.toString())
+                .setId(createdOrder.id.toString())
+                .setModal(Modal.ROAD)
+                .setNecessity("2021-07-01")
+                .setResponsibleId(newResponsible.id.toString())
+                .build()
+        )
+
+        assertEquals("2021-07-18", response.deadline)
+        assertEquals(newDeliveryPlace.name, response.deliveryPlace)
+        assertEquals(Modal.ROAD, response.modal)
+        assertEquals("2021-07-01", response.necessity)
+        assertEquals(newResponsible.name, response.responsible)
+    }
+
+    @Test
+    fun `should not update an order for not finding the delivery place`() {
+        val createdOrder = orderRepository.save(generateOrder())
+        val newResponsible = userRepository.save(User("teste@teste.com", "Teste Update"))
+        val randomId = UUID.randomUUID().toString()
+        val exception = assertThrows<StatusRuntimeException> {
+            grpcClient.update(
+                UpdateOrderRequest.newBuilder()
+                    .setDeadline(LocalDate.now().plusDays(1).toString())
+                    .setDeliveryPlaceId(randomId)
+                    .setId(createdOrder.id.toString())
+                    .setModal(Modal.ROAD)
+                    .setNecessity(LocalDate.now().plusMonths(3).toString())
+                    .setResponsibleId(newResponsible.id.toString())
+                    .build()
+            )
+        }
+
+        assertEquals(Status.NOT_FOUND.code, exception.status.code)
+        assertEquals("Delivery place not found with id $randomId", exception.status.description)
+
+    }
+
+    @Test
+    fun `should not update an order for not finding the order`() {
+        val newResponsible = userRepository.save(User("teste@teste.com", "Teste Update"))
+        val newDeliveryPlace = deliveryPlaceRepository.save(DeliveryPlace("Delivery Place 2"))
+        val randomId = UUID.randomUUID().toString()
+        val exception = assertThrows<StatusRuntimeException> {
+            grpcClient.update(
+                UpdateOrderRequest.newBuilder()
+                    .setDeadline(LocalDate.now().plusDays(1).toString())
+                    .setDeliveryPlaceId(newDeliveryPlace.id.toString())
+                    .setId(randomId)
+                    .setModal(Modal.ROAD)
+                    .setNecessity(LocalDate.now().plusMonths(3).toString())
+                    .setResponsibleId(newResponsible.id.toString())
+                    .build()
+            )
+        }
+
+        assertEquals(Status.NOT_FOUND.code, exception.status.code)
+        assertEquals("Order not found with id $randomId", exception.status.description)
+
+    }
+
+    @Test
+    fun `should not update an order for not finding the responsible`() {
+        val createdOrder = orderRepository.save(generateOrder())
+        val newDeliveryPlace = deliveryPlaceRepository.save(DeliveryPlace("Delivery Place 2"))
+        val randomId = UUID.randomUUID().toString()
+        val exception = assertThrows<StatusRuntimeException> {
+            grpcClient.update(
+                UpdateOrderRequest.newBuilder()
+                    .setDeadline(LocalDate.now().plusDays(1).toString())
+                    .setDeliveryPlaceId(newDeliveryPlace.id.toString())
+                    .setId(createdOrder.id.toString())
+                    .setModal(Modal.ROAD)
+                    .setNecessity(LocalDate.now().plusMonths(3).toString())
+                    .setResponsibleId(randomId)
+                    .build()
+            )
+        }
+
+        assertEquals(Status.NOT_FOUND.code, exception.status.code)
+        assertEquals("User not found with id $randomId", exception.status.description)
+
+    }
+
+    @Test
+    fun `should not update an order due to invalid parameters`() {
+        val exception = assertThrows<StatusRuntimeException> {
+            grpcClient.update(
+                UpdateOrderRequest.newBuilder()
+                    .build()
+            )
+        }
+
+        with(exception) {
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("Arguments validation error", status.description)
+            assertThat(
+                violations(exception), containsInAnyOrder(
+                    Pair(
+                        "deliveryPlaceId",
+                        "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""
+                    ),
+                    Pair(
+                        "id",
+                        "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""
+                    ),
+                    Pair("necessity", "must not be blank"),
+                    Pair("responsibleId", "must not be blank"),
+                    Pair("modal", "must not be null"),
+                    Pair("id", "must not be blank"),
+                    Pair(
+                        "responsibleId",
+                        "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""
+                    ),
+                    Pair("deadline", "must not be blank"),
+                )
+            )
+        }
+    }
+
+    @Test
+    fun `should update an observation successfully`() {
+        val order = orderRepository.save(generateOrder())
+        val obs = "Updating observation"
+        val response = grpcClient.updateObs(
+            UpdateObsOrderRequest.newBuilder()
+                .setId(order.id.toString())
+                .setObservation(obs)
+                .build()
+        )
+
+        assertEquals(obs, response.observation)
+    }
+
+    @Test
+    fun `should not update an observation for not finding the order`() {
+        val obs = "Updating observation"
+        val randomId = UUID.randomUUID().toString()
+        val exception = assertThrows<StatusRuntimeException> {
+            grpcClient.updateObs(
+                UpdateObsOrderRequest.newBuilder()
+                    .setId(randomId)
+                    .setObservation(obs)
+                    .build()
+            )
+        }
+
+        assertEquals(Status.NOT_FOUND.code, exception.status.code)
+        assertEquals("Order not found with id $randomId", exception.status.description)
+    }
+
+    @Test
+    fun `should not update an observation for invalid parameters`() {
+        val exception = assertThrows<StatusRuntimeException> {
+            grpcClient.updateObs(
+                UpdateObsOrderRequest.newBuilder()
+                    .build()
+            )
+        }
+
+        with(exception) {
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("Arguments validation error", status.description)
+            assertThat(
+                violations(this), containsInAnyOrder(
+                    Pair(
+                        "id",
+                        "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""
+                    ),
+                    Pair("id", "must not be blank"),
+                    Pair("observation", "must not be blank"),
+                )
+            )
+        }
+
+    }
+
+    @Test
+    fun `should delete an order successfully`() {
+        val order = orderRepository.save(generateOrder())
+        grpcClient.delete(
+            DeleteOrderRequest.newBuilder()
+                .setId(order.id.toString())
+                .build()
+        )
+    }
+
+    @Test
+    fun `should not delete an order for not finding the order`() {
+        val randomId = UUID.randomUUID().toString()
+        val exception = assertThrows<StatusRuntimeException> {
+            grpcClient.delete(
+                DeleteOrderRequest.newBuilder()
+                    .setId(randomId)
+                    .build()
+            )
+        }
+
+        assertEquals(Status.NOT_FOUND.code, exception.status.code)
+        assertEquals("Order not found with id $randomId", exception.status.description)
+    }
+
+    @Test
+    fun `should update the reference successfully`() {
+        val order = orderRepository.save(generateOrder())
+        val reference = "AB-0123-45"
+        val response = grpcClient.updateRef(
+            UpdateRefOrderRequest.newBuilder()
+                .setId(order.id.toString())
+                .setReference(reference)
+                .build()
+        )
+
+        assertEquals(reference, response.brokerReference)
+    }
+
+    @Test
+    fun `should not update the reference for not finding the order`() {
+        val obs = "AB-0123-45"
+        val randomId = UUID.randomUUID().toString()
+        val exception = assertThrows<StatusRuntimeException> {
+            grpcClient.updateRef(
+                UpdateRefOrderRequest.newBuilder()
+                    .setId(randomId)
+                    .setReference(obs)
+                    .build()
+            )
+        }
+
+        assertEquals(Status.NOT_FOUND.code, exception.status.code)
+        assertEquals("Order not found with id $randomId", exception.status.description)
+    }
+
+    @Test
+    fun `should not update the reference for invalid parameters`() {
+        val exception = assertThrows<StatusRuntimeException> {
+            grpcClient.updateRef(
+                UpdateRefOrderRequest.newBuilder()
+                    .build()
+            )
+        }
+
+        with(exception) {
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("Arguments validation error", status.description)
+            assertThat(
+                violations(this), containsInAnyOrder(
+                    Pair(
+                        "id",
+                        "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""
+                    ),
+                    Pair("id", "must not be blank"),
+                    Pair("reference", "must not be blank"),
+                )
+            )
+        }
+
+    }
+
+    @Test
+    fun `should not update the reference because it already exists`() {
+        orderRepository.save(generateOrder())
+            .apply {
+                updateReference("AB-0123-45")
+                orderRepository.update(this)
+            }
+        val order = orderRepository.save(generateOrder("4201010102"))
+
+        val exception = assertThrows<StatusRuntimeException> {
+            grpcClient.updateRef(
+                UpdateRefOrderRequest.newBuilder()
+                    .setId(order.id.toString())
+                    .setReference("AB-0123-45")
+                    .build()
+            )
+        }
+
+        with(exception) {
+            assertEquals(Status.ALREADY_EXISTS.code, status.code)
+            assertEquals("Reference AB-0123-45 already exists", status.description)
+        }
+
+    }
+
+    @Test
+    fun `should not delete an order for invalid parameters`() {
+        val exception = assertThrows<StatusRuntimeException> {
+            grpcClient.delete(
+                DeleteOrderRequest.newBuilder()
+                    .build()
+            )
+        }
+
+        with(exception) {
+            assertEquals(Status.INVALID_ARGUMENT.code, status.code)
+            assertEquals("Arguments validation error", status.description)
+            assertThat(
+                violations(this), containsInAnyOrder(
+                    Pair(
+                        "id",
+                        "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""
+                    ),
+                    Pair("id", "must not be blank"),
+                )
+            )
+        }
+
+    }
+
+    private fun generateOrder(number: String? = null) = Order(
+        origin = "USA",
+        destination = "Brazil",
+        exporter = exporter!!,
+        number = number ?: "4201010101",
+        importer = importer!!,
+        date = LocalDate.now(),
+        responsible = user!!,
+        modal = OrderModal.SEA,
+        necessity = LocalDate.now(),
+        deadline = LocalDate.now()
+    ).apply {
+        includeItems(listOf(Item(BigDecimal.TEN, material!!, this)))
     }
 
     private fun generateNewOrderRequest(

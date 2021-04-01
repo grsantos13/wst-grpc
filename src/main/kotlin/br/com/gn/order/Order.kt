@@ -7,26 +7,17 @@ import br.com.gn.importer.Importer
 import br.com.gn.order.Status.PENDING_APPROVAL
 import br.com.gn.order.event.Event
 import br.com.gn.user.User
+import org.hibernate.annotations.OnDelete
+import org.hibernate.annotations.OnDeleteAction
 import java.time.LocalDate
 import java.util.*
+import javax.persistence.*
 import javax.persistence.CascadeType.PERSIST
 import javax.persistence.CascadeType.REMOVE
-import javax.persistence.Column
-import javax.persistence.Entity
 import javax.persistence.EnumType.STRING
-import javax.persistence.Enumerated
 import javax.persistence.FetchType.EAGER
-import javax.persistence.GeneratedValue
 import javax.persistence.GenerationType.AUTO
-import javax.persistence.Id
-import javax.persistence.JoinColumn
-import javax.persistence.ManyToOne
-import javax.persistence.OneToMany
-import javax.persistence.OneToOne
-import javax.persistence.Table
-import javax.persistence.UniqueConstraint
 import javax.validation.Valid
-import javax.validation.constraints.FutureOrPresent
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
 import javax.validation.constraints.PastOrPresent
@@ -36,7 +27,8 @@ import javax.validation.constraints.Size
 @Table(
     name = "order_processes",
     uniqueConstraints = [
-        UniqueConstraint(name = "order_number_uk", columnNames = ["number"])
+        UniqueConstraint(name = "order_number_uk", columnNames = ["number"]),
+        UniqueConstraint(name = "order_broker_reference_uk", columnNames = ["broker_reference"])
     ]
 )
 class Order(
@@ -46,12 +38,12 @@ class Order(
     @field:NotNull @field:Size(max = 10) val number: String,
     @field:NotNull @field:Valid @ManyToOne @JoinColumn(nullable = false, updatable = false) val importer: Importer,
     @field:NotNull @field:PastOrPresent @Column(nullable = false, updatable = false) val date: LocalDate,
-    @field:NotNull @field:Valid @ManyToOne @JoinColumn(nullable = false) val responsible: User,
-    @field:NotNull @Enumerated(STRING) @Column(nullable = false) val modal: Modal,
-    @field:NotNull @field:FutureOrPresent @Column(nullable = false) val necessity: LocalDate,
-    @field:NotNull @Column(nullable = false) val deadline: LocalDate,
-    @Column(length = 1000) val observation: String? = null,
-    @ManyToOne val deliveryPlace: DeliveryPlace? = null
+    @NotNull @Valid responsible: User,
+    @NotNull modal: Modal,
+    @NotNull necessity: LocalDate,
+    @NotNull deadline: LocalDate,
+    observation: String? = null,
+    deliveryPlace: DeliveryPlace? = null
 ) {
 
 
@@ -64,19 +56,52 @@ class Order(
     @Column(nullable = false)
     val status = PENDING_APPROVAL
 
-    @Column(length = 20)
-    val brokerReference: String? = null
+    @field:Size(max = 20)
+    @Column(length = 20, name = "broker_reference")
+    var brokerReference: String? = null
 
     @field:NotNull
     @field:Valid
     @field:Size(min = 1)
-    @OneToMany(mappedBy = "order", fetch = EAGER)
+    @OneToMany(mappedBy = "order", fetch = EAGER, cascade = [PERSIST])
+    @OnDelete(action = OnDeleteAction.CASCADE)
     var items: List<Item>? = null
 
     @field:Valid
     @field:NotNull
     @OneToOne(mappedBy = "order", cascade = [PERSIST, REMOVE], fetch = EAGER)
     val event = Event(this)
+
+    @field:NotNull
+    @Column(nullable = false)
+    var deadline = deadline
+        private set
+
+    @field:NotNull
+    @Column(nullable = false)
+    var necessity = necessity
+        private set
+
+    @field:NotNull
+    @Enumerated(STRING)
+    @Column(nullable = false)
+    var modal = modal
+        private set
+
+    @field:NotNull
+    @field:Valid
+    @ManyToOne
+    @JoinColumn(nullable = false)
+    var responsible = responsible
+        private set
+
+    @ManyToOne
+    var deliveryPlace = deliveryPlace
+        private set
+
+    @Column(length = 1000)
+    var observation = observation
+        private set
 
     fun includeItems(items: List<Item>) {
         this.items = items
@@ -104,6 +129,7 @@ class Order(
             .setObservation(observation ?: "")
             .setDeliveryPlace(deliveryPlace?.name ?: "")
             .setId(id.toString())
+            .setBrokerReference(brokerReference ?: "")
             .setEvents(
                 OrderResponse.EventResponse.newBuilder()
                     .setAvailability(event.availability.toString())
@@ -117,6 +143,22 @@ class Order(
                     .build()
             )
             .build()
+    }
+
+    fun update(updateRequest: UpdateOrderRequest.UpdateRequest) {
+        deliveryPlace = updateRequest.deliveryPlace
+        modal = updateRequest.modal
+        necessity = updateRequest.necessity!!
+        responsible = updateRequest.responsible
+        deadline = updateRequest.deadline!!
+    }
+
+    fun updateObservation(observation: String) {
+        this.observation = observation
+    }
+
+    fun updateReference(reference: String) {
+        this.brokerReference = reference
     }
 
 }

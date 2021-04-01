@@ -7,6 +7,7 @@ import br.com.gn.material.Material
 import br.com.gn.shared.exception.ObjectNotFoundException
 import br.com.gn.shared.validation.ValidUUID
 import br.com.gn.user.User
+import br.com.gn.utils.toLocalDate
 import io.micronaut.core.annotation.Introspected
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -83,4 +84,40 @@ data class ItemRequest(
     @field:NotBlank @field:ValidUUID val materialId: String,
     @field:NotNull @field:Positive val quantity: BigDecimal?
 )
+
+@Introspected
+data class UpdateOrderRequest(
+    @field:ValidUUID val deliveryPlaceId: String? = null,
+    @field:NotNull val modal: Modal?,
+    @field:NotBlank val necessity: String,
+    @field:NotBlank @field:ValidUUID val responsibleId: String,
+    @field:NotBlank val deadline: String
+) {
+    class UpdateRequest(
+        val deliveryPlace: DeliveryPlace? = null,
+        @field:NotNull val modal: Modal,
+        @field:NotNull val necessity: LocalDate?,
+        @field:NotNull val responsible: User,
+        @field:NotNull val deadline: LocalDate?
+    )
+
+    fun toUpdateRequest(manager: EntityManager): UpdateRequest {
+        var deliveryPlace: DeliveryPlace? = null
+        if (deliveryPlaceId != null)
+            deliveryPlace = manager.find(DeliveryPlace::class.java, UUID.fromString(deliveryPlaceId))
+                ?: throw ObjectNotFoundException("Delivery place not found with id $deliveryPlaceId")
+
+        val responsible = manager.find(User::class.java, UUID.fromString(responsibleId))
+            ?: throw ObjectNotFoundException("User not found with id $responsibleId")
+
+        return UpdateRequest(
+            deliveryPlace = deliveryPlace,
+            modal = modal!!,
+            necessity = necessity.toLocalDate(),
+            responsible = responsible,
+            deadline = deadline.toLocalDate()
+        )
+    }
+
+}
 

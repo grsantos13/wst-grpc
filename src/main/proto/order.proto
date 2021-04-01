@@ -10,6 +10,7 @@ service ManageOrderService {
   rpc create (NewOrderRequest) returns (OrderResponse) {}
   rpc update (UpdateOrderRequest) returns (OrderResponse) {}
   rpc updateObs (UpdateObsOrderRequest) returns (OrderResponse) {}
+  rpc updateRef(UpdateRefOrderRequest) returns (OrderResponse) {}
   rpc delete (DeleteOrderRequest) returns (OrderResponse) {}
 }
 
@@ -63,10 +64,17 @@ message UpdateOrderRequest {
   string necessity = 3;
   string deadline = 4;
   string deliveryPlaceId = 5;
+  string id = 6;
 }
 
 message UpdateObsOrderRequest {
   string observation = 1;
+  string id = 2;
+}
+
+message UpdateRefOrderRequest {
+  string reference = 1;
+  string id = 2;
 }
 
 message DeleteOrderRequest {
@@ -96,6 +104,7 @@ message OrderResponse {
   string deliveryPlace = 13;
   EventResponse events = 14;
   string id = 15;
+  string brokerReference = 16;
 
   message ItemResponse {
     string code = 1;

@@ -9,6 +9,7 @@ import java.util.*
 @Repository
 interface OrderRepository : JpaRepository<Order, UUID> {
     fun existsByNumber(number: String): Boolean
+    fun existsByBrokerReference(brokerReference: String): Boolean
     fun findByDestination(destination: String, pageable: Pageable): Page<Order>
     fun findByExporterId(exporterId: UUID, pageable: Pageable): Page<Order>
     fun findByImporterId(importerId: UUID, pageable: Pageable): Page<Order>

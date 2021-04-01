@@ -7,12 +7,14 @@ import br.com.gn.ReadOrderRequest.SearchOrderCase.EXPORTERID
 import br.com.gn.ReadOrderRequest.SearchOrderCase.IMPORTERID
 import br.com.gn.ReadOrderRequest.SearchOrderCase.NUMBER
 import br.com.gn.ReadOrderRequest.SearchOrderCase.ORIGIN
+import br.com.gn.UpdateOrderRequest
 import br.com.gn.order.read.Filter
 import br.com.gn.utils.toBigDecimal
 import br.com.gn.utils.toLocalDate
 import javax.validation.ConstraintViolationException
 import javax.validation.Validator
 import br.com.gn.order.NewOrderRequest as Request
+import br.com.gn.order.UpdateOrderRequest as UpdateRequest
 
 fun NewOrderRequest.toRequestModel(): Request {
     return Request(
@@ -55,4 +57,17 @@ fun ReadOrderRequest.toFilter(validator: Validator): Filter {
         throw ConstraintViolationException(violations)
 
     return filter
+}
+
+fun UpdateOrderRequest.toRequestModel(): UpdateRequest {
+    return UpdateRequest(
+        deadline = this.deadline,
+        deliveryPlaceId = this.deliveryPlaceId,
+        modal = when (this.modal.name) {
+            "UNKNOWN_MODAL" -> null
+            else -> Modal.valueOf(this.modal.name)
+        },
+        necessity = this.necessity,
+        responsibleId = this.responsibleId,
+    )
 }
