@@ -1,19 +1,13 @@
 package br.com.gn.exporter
 
+import br.com.gn.ExporterResponse
 import br.com.gn.address.Address
 import java.util.*
-import javax.persistence.Column
-import javax.persistence.Embedded
-import javax.persistence.Entity
+import javax.persistence.*
 import javax.persistence.EnumType.STRING
-import javax.persistence.Enumerated
-import javax.persistence.GeneratedValue
-import javax.persistence.GenerationType
-import javax.persistence.Id
-import javax.persistence.Table
-import javax.persistence.UniqueConstraint
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
+import javax.validation.constraints.PositiveOrZero
 import javax.validation.constraints.Size
 
 @Entity
@@ -28,7 +22,11 @@ class Exporter(
     @field:NotNull @Enumerated(STRING) @Column(nullable = false) var paymentTerms: PaymentTerms,
     @field:NotNull @Embedded var address: Address,
     @field:NotNull @Enumerated(STRING) @Column(nullable = false) var incoterm: Incoterm,
-    @field:NotNull @Enumerated(STRING) @Column(nullable = false) var currency: Currency
+    @field:NotNull @Enumerated(STRING) @Column(nullable = false) var currency: Currency,
+    @field:NotNull @field:PositiveOrZero val availabilityLT: Int?,
+    @field:NotNull @field:PositiveOrZero val departureLT: Int?,
+    @field:NotNull @field:PositiveOrZero val arrivalLT: Int?,
+    @field:NotNull @field:PositiveOrZero val totalLT: Int?
 ) {
 
 
@@ -42,5 +40,17 @@ class Exporter(
         this.paymentTerms = request.paymentTerms!!
         this.incoterm = request.incoterm!!
         this.currency = request.currency!!
+    }
+
+    fun toGrpcExporterResponse(): ExporterResponse {
+        return ExporterResponse.newBuilder()
+            .setId(id.toString())
+            .setCode(code)
+            .setName(name)
+            .setPaymentTerms(br.com.gn.PaymentTerms.valueOf(paymentTerms.name))
+            .setAddress(address.toGrpcAddress())
+            .setCurrency(br.com.gn.Currency.valueOf(currency.name))
+            .setIncoterm(br.com.gn.Incoterm.valueOf(incoterm.name))
+            .build()
     }
 }

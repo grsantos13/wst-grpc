@@ -1,16 +1,10 @@
 package br.com.gn.importer
 
+import br.com.gn.ImporterResponse
 import br.com.gn.address.Address
 import org.hibernate.validator.constraints.br.CNPJ
 import java.util.*
-import javax.persistence.Column
-import javax.persistence.Embedded
-import javax.persistence.Entity
-import javax.persistence.GeneratedValue
-import javax.persistence.GenerationType
-import javax.persistence.Id
-import javax.persistence.Table
-import javax.persistence.UniqueConstraint
+import javax.persistence.*
 import javax.validation.Valid
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
@@ -35,5 +29,16 @@ class Importer(
 
     fun update(request: UpdateImporterRequest) {
         this.address = request.address.toAddress()
+    }
+
+    fun toGrpcImporterResponse(): ImporterResponse {
+        return ImporterResponse.newBuilder()
+            .setAddress(address.toGrpcAddress())
+            .setPlant(plant)
+            .setId(id.toString())
+            .setFiscalNumber(fiscalNumber)
+            .setFiscalName(fiscalName)
+            .build()
+
     }
 }

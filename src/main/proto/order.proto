@@ -1,5 +1,7 @@
 syntax = "proto3";
 import "shared.proto";
+import "importer.proto";
+import "exporter.proto";
 
 option java_multiple_files = true;
 option java_outer_classname = "Order";
@@ -84,12 +86,12 @@ message OrdersResponse {
 message OrderResponse {
   string origin = 1;
   string destination = 2;
-  string exporter = 3;
+  ExporterResponse exporter = 3;
   repeated ItemResponse items = 4;
   string number = 5;
-  string importer = 6;
+  ImporterResponse importer = 6;
   string date = 7;
-  string responsible = 8;
+  ResponsibleResponse responsible = 8;
   Modal modal = 9;
   string necessity = 10;
   string deadline = 11;
@@ -99,11 +101,20 @@ message OrderResponse {
   string id = 15;
   string brokerReference = 16;
 
+  message ResponsibleResponse {
+    string email = 1;
+    string name = 2;
+  }
+
   message ItemResponse {
     string code = 1;
     string description = 2;
     string quantity = 3;
     string id = 4;
+    string unitPrice = 5;
+    bool pricePerThousand = 6;
+    bool preShipmentLicense = 7;
+    string ncm = 8;
   }
 
   message EventResponse {

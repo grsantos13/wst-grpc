@@ -11,6 +11,12 @@ datasources:
     dialect: H2
 jpa.default.properties.hibernate.hbm2ddl.auto: update
 
+grpc:
+  server:
+    port: 8080
+    keep-alive-time: 3h
+    max-inbound-message-size: 1024
+
 siscomex:
   ncm:
     url: 'https://portalunico.siscomex.gov.br/classif/api/nomenclatura/pesquisa/'

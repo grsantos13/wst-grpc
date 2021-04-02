@@ -70,7 +70,11 @@ internal class ManageOrderEndpointTest(
                 paymentTerms = PaymentTerms.E30,
                 address = Address("Test", "test", "test", "test"),
                 incoterm = Incoterm.CIF,
-                currency = Currency.EUR
+                currency = Currency.EUR,
+                availabilityLT = 30,
+                departureLT = 6,
+                arrivalLT = 20,
+                totalLT = 80
             )
         )
 
@@ -265,7 +269,7 @@ internal class ManageOrderEndpointTest(
         assertEquals(newDeliveryPlace.name, response.deliveryPlace)
         assertEquals(Modal.ROAD, response.modal)
         assertEquals("2021-07-01", response.necessity)
-        assertEquals(newResponsible.name, response.responsible)
+        assertEquals(newResponsible.name, response.responsible.name)
     }
 
     @Test

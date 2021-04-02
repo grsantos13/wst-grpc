@@ -58,6 +58,10 @@ internal class ExporterEndpointTest(
                 .setPaymentTerms(PaymentTerms.E30)
                 .setName("Exporter test")
                 .setCurrency(Currency.EUR)
+                .setAvailabilityLT(30)
+                .setDepartureLT(6)
+                .setArrivalLT(20)
+                .setTotalLT(80)
                 .build()
         )
 
@@ -84,6 +88,10 @@ internal class ExporterEndpointTest(
                     .setPaymentTerms(PaymentTerms.E30)
                     .setName("Exporter test")
                     .setCurrency(Currency.EUR)
+                    .setAvailabilityLT(30)
+                    .setDepartureLT(6)
+                    .setArrivalLT(20)
+                    .setTotalLT(80)
                     .build()
             )
         }
@@ -280,7 +288,11 @@ internal class ExporterEndpointTest(
             paymentTerms = br.com.gn.exporter.PaymentTerms.E30,
             address = ExporterAddress("Test", "test", "test", "test"),
             incoterm = ExporterIncoterm.CIF,
-            currency = ExporterCurrency.EUR
+            currency = ExporterCurrency.EUR,
+            availabilityLT = 30,
+            departureLT = 6,
+            arrivalLT = 20,
+            totalLT = 80
         )
 
 }

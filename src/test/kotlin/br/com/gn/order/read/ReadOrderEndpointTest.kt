@@ -65,7 +65,11 @@ internal class ReadOrderEndpointTest(
                 paymentTerms = PaymentTerms.E30,
                 address = Address("Test", "test", "test", "test"),
                 incoterm = Incoterm.CIF,
-                currency = Currency.EUR
+                currency = Currency.EUR,
+                availabilityLT = 30,
+                departureLT = 6,
+                arrivalLT = 20,
+                totalLT = 80
             )
         )
         exporterOrderTwo = exporterRepository.save(
@@ -75,7 +79,11 @@ internal class ReadOrderEndpointTest(
                 paymentTerms = PaymentTerms.E30,
                 address = Address("Test", "test", "test", "test"),
                 incoterm = Incoterm.CIF,
-                currency = Currency.EUR
+                currency = Currency.EUR,
+                availabilityLT = 30,
+                departureLT = 6,
+                arrivalLT = 20,
+                totalLT = 80
             )
         )
         importerOrderOne = importerRepository.save(Importer(

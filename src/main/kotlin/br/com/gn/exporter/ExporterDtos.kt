@@ -5,6 +5,7 @@ import io.micronaut.core.annotation.Introspected
 import javax.validation.Valid
 import javax.validation.constraints.NotBlank
 import javax.validation.constraints.NotNull
+import javax.validation.constraints.PositiveOrZero
 import javax.validation.constraints.Size
 
 @Introspected
@@ -14,7 +15,11 @@ data class NewExporterRequest(
     @field:NotNull val paymentTerms: PaymentTerms?,
     @field:NotNull @field:Valid val address: AddressRequest,
     @field:NotNull val incoterm: Incoterm?,
-    @field:NotNull val currency: Currency?
+    @field:NotNull val currency: Currency?,
+    @field:NotNull @field:PositiveOrZero val availabilityLT: Int? = null,
+    @field:NotNull @field:PositiveOrZero val departureLT: Int? = null,
+    @field:NotNull @field:PositiveOrZero val arrivalLT: Int? = null,
+    @field:NotNull @field:PositiveOrZero val totalLT: Int? = null
 ) {
     fun toModel(): Exporter {
         return Exporter(
@@ -23,7 +28,11 @@ data class NewExporterRequest(
             paymentTerms = paymentTerms!!,
             address = address.toAddress(),
             incoterm = incoterm!!,
-            currency = currency!!
+            currency = currency!!,
+            availabilityLT = availabilityLT,
+            departureLT = departureLT,
+            arrivalLT = arrivalLT,
+            totalLT = totalLT
         )
     }
 }
@@ -34,5 +43,9 @@ data class UpdateExporterRequest(
     @field:NotNull val paymentTerms: PaymentTerms?,
     @field:NotNull @field:Valid val address: AddressRequest,
     @field:NotNull val incoterm: Incoterm?,
-    @field:NotNull val currency: Currency?
+    @field:NotNull val currency: Currency?,
+    @field:NotNull @field:PositiveOrZero val availabilityLT: Int,
+    @field:NotNull @field:PositiveOrZero val departureLT: Int,
+    @field:NotNull @field:PositiveOrZero val arrivalLT: Int,
+    @field:NotNull @field:PositiveOrZero val totalLT: Int
 )

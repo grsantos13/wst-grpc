@@ -29,8 +29,8 @@ fun NewOrderRequest.toRequestModel(): Request {
         date = date.toLocalDate(),
         responsibleId = responsibleId,
         modal = modal.name.toEnum<Modal>(),
-        necessity = date.toLocalDate(),
-        deadline = date.toLocalDate(),
+        necessity = necessity.toLocalDate(),
+        deadline = deadline.toLocalDate(),
         observation = observation,
         deliveryPlaceId = deliveryPlaceId
     )

@@ -26,6 +26,10 @@ message NewExporterRequest {
   Address address = 4;
   Incoterm incoterm = 5;
   Currency currency = 7;
+  int32 availabilityLT = 8;
+  int32 departureLT = 9;
+  int32 arrivalLT = 10;
+  int32 totalLT = 11;
 }
 
 message ReadExporterRequest{
@@ -43,6 +47,10 @@ message UpdateExporterRequest {
   Address address = 4;
   Incoterm incoterm = 5;
   Currency currency = 6;
+  int32 availabilityLT = 7;
+  int32 departureLT = 8;
+  int32 arrivalLT = 9;
+  int32 totalLT = 10;
 }
 
 message DeleteExporterRequest {
@@ -57,4 +65,8 @@ message ExporterResponse {
   Address address = 5;
   Incoterm incoterm = 6;
   Currency currency = 7;
+  int32 availabilityLT = 8;
+  int32 departureLT = 9;
+  int32 arrivalLT = 10;
+  int32 totalLT = 11;
 }

@@ -14,7 +14,11 @@ fun NewExporterRequest.toRequestModel(): Request {
         paymentTerms = paymentTerms.name.toEnum<PaymentTerms>(),
         address = address.toRequestModel(),
         incoterm = incoterm.name.toEnum<Incoterm>(),
-        currency = currency.name.toEnum<Currency>()
+        currency = currency.name.toEnum<Currency>(),
+        availabilityLT = availabilityLT,
+        departureLT = departureLT,
+        arrivalLT = arrivalLT,
+        totalLT = totalLT,
     )
 }
 
@@ -25,6 +29,10 @@ fun UpdateExporterRequest.toRequestModel(): UpdateRequest {
         paymentTerms = paymentTerms.name.toEnum<PaymentTerms>(),
         address = address.toRequestModel(),
         incoterm = incoterm.name.toEnum<Incoterm>(),
-        currency = currency.name.toEnum<Currency>()
+        currency = currency.name.toEnum<Currency>(),
+        availabilityLT = availabilityLT,
+        departureLT = departureLT,
+        arrivalLT = arrivalLT,
+        totalLT = totalLT,
     )
 }
