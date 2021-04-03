@@ -51,6 +51,10 @@ class Exporter(
             .setAddress(address.toGrpcAddress())
             .setCurrency(br.com.gn.Currency.valueOf(currency.name))
             .setIncoterm(br.com.gn.Incoterm.valueOf(incoterm.name))
+            .setAvailabilityLT(availabilityLT ?: 0)
+            .setDepartureLT(departureLT ?: 0)
+            .setArrivalLT(arrivalLT ?: 0)
+            .setTotalLT(totalLT ?: 0)
             .build()
     }
 }

@@ -1,0 +1,26 @@
+syntax = "proto3";
+import "shared.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "Route";
+
+package br.com.gn;
+
+service PointService{
+  rpc create(NewPointRequest) returns (PointResponse) {}
+  rpc read(ReadPointRequest) returns (PointsResponse) {}
+}
+
+message NewPointRequest {
+  string name = 1;
+}
+
+message PointResponse{
+  string id = 1;
+  string name = 2;
+}
+
+message ReadPointRequest {}
+message PointsResponse{
+  repeated PointResponse point = 1;
+}
