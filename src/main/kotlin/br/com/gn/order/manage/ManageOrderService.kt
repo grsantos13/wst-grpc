@@ -1,9 +1,8 @@
 package br.com.gn.order.manage
 
-import br.com.gn.ExistsRouteRequest
+import br.com.gn.NotifyRouteRequest
+import br.com.gn.OperationType
 import br.com.gn.RouteServiceGrpc
-import br.com.gn.alert.Alert
-import br.com.gn.alert.AlertType.NOT_REGISTERED
 import br.com.gn.order.NewOrderRequest
 import br.com.gn.order.Order
 import br.com.gn.order.OrderRepository
@@ -32,19 +31,19 @@ class ManageOrderService(
         if (repository.existsByNumber(request.number))
             throw ObjectAlreadyExistsException("Order with number ${request.number} already exists")
 
-        validateRoute(request.route)
-
         val order = request.toModel(manager)
+        notifyRoute(order)
+
         repository.save(order)
         return order
     }
 
     @Transactional
     fun update(@Valid request: UpdateOrderRequest, @NotBlank @ValidUUID id: String): Order {
-        validateRoute(request.route)
         return repository.findById(UUID.fromString(id))
             .orElseThrow { throw ObjectNotFoundException("Order not found with id $id") }
             .apply {
+                notifyRoute(this)
                 val updateRequest = request.toUpdateRequest(manager)
                 this.update(updateRequest)
             }
@@ -79,16 +78,15 @@ class ManageOrderService(
         return order
     }
 
-    private fun validateRoute(route: String?) {
-        if (route != null) {
-            wstRouteClient.exists(
-                ExistsRouteRequest.newBuilder()
-                    .setName(route)
+    private fun notifyRoute(order: Order) {
+        if (!order.route.isNullOrBlank())
+            wstRouteClient.notify(
+                NotifyRouteRequest.newBuilder()
+                    .setExporterCode(order.exporter.code)
+                    .setImporterPlant(order.importer.plant)
+                    .setName(order.route)
+                    .setType(OperationType.IMPORT)
                     .build()
-            ).run {
-                if (exists)
-                    manager.persist(Alert(NOT_REGISTERED, "Route", route))
-            }
-        }
+            )
     }
 }
