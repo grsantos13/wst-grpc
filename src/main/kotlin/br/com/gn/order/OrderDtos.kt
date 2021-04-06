@@ -34,7 +34,8 @@ data class NewOrderRequest(
     @field:NotNull val necessity: LocalDate?,
     @field:NotNull val deadline: LocalDate?,
     @field:NotBlank @field:Size(max = 1000) val observation: String? = null,
-    @field:NotBlank @field:ValidUUID val deliveryPlaceId: String? = null
+    @field:NotBlank @field:ValidUUID val deliveryPlaceId: String? = null,
+    val route: String? = null
 ) {
     fun toModel(manager: EntityManager): Order {
         val exporter = manager.find(Exporter::class.java, UUID.fromString(exporterId))
@@ -64,7 +65,8 @@ data class NewOrderRequest(
             necessity = necessity!!,
             deadline = deadline!!,
             observation = observation,
-            deliveryPlace = deliveryPlace
+            deliveryPlace = deliveryPlace,
+            route = route
         )
 
         val items = items.map {
@@ -91,14 +93,16 @@ data class UpdateOrderRequest(
     @field:NotNull val modal: Modal?,
     @field:NotBlank val necessity: String,
     @field:NotBlank @field:ValidUUID val responsibleId: String,
-    @field:NotBlank val deadline: String
+    @field:NotBlank val deadline: String,
+    val route: String? = null
 ) {
     class UpdateRequest(
         val deliveryPlace: DeliveryPlace? = null,
         @field:NotNull val modal: Modal,
         @field:NotNull val necessity: LocalDate?,
         @field:NotNull val responsible: User,
-        @field:NotNull val deadline: LocalDate?
+        @field:NotNull val deadline: LocalDate?,
+        val route: String? = null
     )
 
     fun toUpdateRequest(manager: EntityManager): UpdateRequest {
@@ -115,7 +119,8 @@ data class UpdateOrderRequest(
             modal = modal!!,
             necessity = necessity.toLocalDate(),
             responsible = responsible,
-            deadline = deadline.toLocalDate()
+            deadline = deadline.toLocalDate(),
+            route = route
         )
     }
 

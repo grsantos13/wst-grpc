@@ -1,0 +1,69 @@
+syntax = "proto3";
+import "shared.proto";
+
+option java_multiple_files = true;
+option java_outer_classname = "Route";
+
+package br.com.gn;
+
+service EventService{
+  rpc create(NewEventRequest) returns (EventResponse) {}
+  rpc read(ReadEventRequest) returns (EventsResponse) {}
+}
+
+service RouteService{
+  rpc create(NewRouteRequest) returns (RouteResponse) {}
+  rpc exists(ExistsRouteRequest) returns (ExistsRouteResponse) {}
+}
+
+message NewEventRequest {
+  string name = 1;
+}
+
+message EventResponse{
+  string id = 1;
+  string name = 2;
+}
+
+message ReadEventRequest {}
+message EventsResponse{
+  repeated EventResponse event = 1;
+}
+
+message RouteEventRequest {
+  int64 eventId = 1;
+  int32 leadtime = 2;
+  int32 index = 3;
+}
+
+message NewRouteRequest{
+  string name = 1;
+  repeated RouteEventRequest routeEvent = 2;
+  string exporterCode = 3;
+  string importerPlant = 4;
+  OperationType type = 5;
+}
+
+message RouteEventResponse{
+  int64 id = 1;
+  EventResponse event = 2;
+  int32 leadtime = 3;
+  int32 index = 4;
+}
+
+message RouteResponse {
+  string id = 1;
+  string name = 2;
+  repeated RouteEventResponse routeEvent = 3;
+  string exporterCode = 4;
+  string importerPlant = 5;
+  OperationType type = 6;
+}
+
+message ExistsRouteRequest {
+  string name = 1;
+}
+
+message ExistsRouteResponse {
+  bool exists = 1;
+}

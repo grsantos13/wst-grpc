@@ -1,5 +1,13 @@
-package br.com.gn.order
+package br.com.gn.order.manage
 
+import br.com.gn.ExistsRouteRequest
+import br.com.gn.RouteServiceGrpc
+import br.com.gn.alert.Alert
+import br.com.gn.alert.AlertType.NOT_REGISTERED
+import br.com.gn.order.NewOrderRequest
+import br.com.gn.order.Order
+import br.com.gn.order.OrderRepository
+import br.com.gn.order.UpdateOrderRequest
 import br.com.gn.shared.exception.ObjectAlreadyExistsException
 import br.com.gn.shared.exception.ObjectNotFoundException
 import br.com.gn.shared.validation.ValidUUID
@@ -14,14 +22,17 @@ import javax.validation.constraints.Size
 
 @Validated
 @Singleton
-class OrderService(
+class ManageOrderService(
     private val repository: OrderRepository,
-    private val manager: EntityManager
+    private val manager: EntityManager,
+    private val wstRouteClient: RouteServiceGrpc.RouteServiceBlockingStub
 ) {
     @Transactional
     fun create(@Valid request: NewOrderRequest): Order {
         if (repository.existsByNumber(request.number))
             throw ObjectAlreadyExistsException("Order with number ${request.number} already exists")
+
+        validateRoute(request.route)
 
         val order = request.toModel(manager)
         repository.save(order)
@@ -30,6 +41,7 @@ class OrderService(
 
     @Transactional
     fun update(@Valid request: UpdateOrderRequest, @NotBlank @ValidUUID id: String): Order {
+        validateRoute(request.route)
         return repository.findById(UUID.fromString(id))
             .orElseThrow { throw ObjectNotFoundException("Order not found with id $id") }
             .apply {
@@ -67,4 +79,16 @@ class OrderService(
         return order
     }
 
+    private fun validateRoute(route: String?) {
+        if (route != null) {
+            wstRouteClient.exists(
+                ExistsRouteRequest.newBuilder()
+                    .setName(route)
+                    .build()
+            ).run {
+                if (exists)
+                    manager.persist(Alert(NOT_REGISTERED, "Route", route))
+            }
+        }
+    }
 }

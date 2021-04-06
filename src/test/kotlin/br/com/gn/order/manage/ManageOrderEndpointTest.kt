@@ -607,6 +607,7 @@ internal class ManageOrderEndpointTest(
             .setNecessity(LocalDate.now().toString())
             .setDeadline(LocalDate.now().toString())
             .setObservation("Test")
+            .setRoute("MAR_USA_EXP_IMP")
             .setDeliveryPlaceId(deliveryPlaceId ?: deliveryPlace!!.id.toString())
             .build()
 }

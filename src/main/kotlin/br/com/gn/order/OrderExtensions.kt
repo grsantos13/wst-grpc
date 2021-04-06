@@ -32,7 +32,8 @@ fun NewOrderRequest.toRequestModel(): Request {
         necessity = necessity.toLocalDate(),
         deadline = deadline.toLocalDate(),
         observation = observation,
-        deliveryPlaceId = deliveryPlaceId
+        deliveryPlaceId = deliveryPlaceId,
+        route = route
     )
 }
 
@@ -60,5 +61,6 @@ fun UpdateOrderRequest.toRequestModel(): UpdateRequest {
         modal = modal.name.toEnum<Modal>(),
         necessity = this.necessity,
         responsibleId = this.responsibleId,
+        route = route
     )
 }

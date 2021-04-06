@@ -16,6 +16,14 @@ grpc:
     port: 8080
     keep-alive-time: 3h
     max-inbound-message-size: 1024
+  client:
+    plaintext: true
+    max-retry-attempts: 10
+    channels:
+      wstRouteRead:
+        address: 'localhost:50050'
+        plaintext: true
+        max-retry-attempts: 10
 
 siscomex:
   ncm:

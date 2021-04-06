@@ -43,7 +43,8 @@ class Order(
     @NotNull necessity: LocalDate,
     @NotNull deadline: LocalDate,
     observation: String? = null,
-    deliveryPlace: DeliveryPlace? = null
+    deliveryPlace: DeliveryPlace? = null,
+    route: String? = null
 ) {
 
 
@@ -103,6 +104,9 @@ class Order(
     var observation = observation
         private set
 
+    var route: String? = route
+        private set
+
     fun includeItems(items: List<Item>) {
         this.items = items
     }
@@ -138,6 +142,7 @@ class Order(
             .setDeliveryPlace(deliveryPlace?.name ?: "")
             .setId(id.toString())
             .setBrokerReference(brokerReference ?: "")
+            .setRoute(route)
             .setEvents(
                 OrderResponse.EventResponse.newBuilder()
                     .setAvailability(event.availability.toString())

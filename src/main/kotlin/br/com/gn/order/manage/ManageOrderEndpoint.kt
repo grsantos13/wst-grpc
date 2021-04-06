@@ -1,7 +1,6 @@
 package br.com.gn.order.manage
 
 import br.com.gn.*
-import br.com.gn.order.OrderService
 import br.com.gn.order.toRequestModel
 import br.com.gn.shared.exception.ErrorHandler
 import io.grpc.stub.StreamObserver
@@ -10,7 +9,7 @@ import javax.inject.Singleton
 @ErrorHandler
 @Singleton
 class ManageOrderEndpoint(
-    private val service: OrderService,
+    private val service: ManageOrderService,
 ) : ManageOrderServiceGrpc.ManageOrderServiceImplBase() {
 
     override fun create(request: NewOrderRequest, responseObserver: StreamObserver<OrderResponse>) {

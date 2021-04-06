@@ -34,6 +34,7 @@ message NewOrderRequest {
   string deadline = 11;
   string observation = 12;
   string deliveryPlaceId = 13;
+  string route = 14;
 
   message Item {
     string materialId = 1;
@@ -60,6 +61,7 @@ message UpdateOrderRequest {
   string deadline = 4;
   string deliveryPlaceId = 5;
   string id = 6;
+  string route = 7;
 }
 
 message UpdateObsOrderRequest {
@@ -100,6 +102,7 @@ message OrderResponse {
   EventResponse events = 14;
   string id = 15;
   string brokerReference = 16;
+  string route = 17;
 
   message ResponsibleResponse {
     string email = 1;
