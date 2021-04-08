@@ -13,7 +13,6 @@ service EventService{
 
 service RouteService{
   rpc create(NewRouteRequest) returns (RouteResponse) {}
-  rpc notify(NotifyRouteRequest) returns (NotifyRouteResponse) {}
 }
 
 message NewEventRequest {
@@ -58,15 +57,4 @@ message RouteResponse {
   string exporterCode = 4;
   string importerPlant = 5;
   OperationType type = 6;
-}
-
-message NotifyRouteRequest {
-  string name = 1;
-  string exporterCode = 2;
-  string importerPlant = 3;
-  OperationType type = 4;
-}
-
-message NotifyRouteResponse {
-  bool exists = 1;
 }

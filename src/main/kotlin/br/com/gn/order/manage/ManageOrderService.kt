@@ -1,14 +1,14 @@
 package br.com.gn.order.manage
 
-import br.com.gn.NotifyRouteRequest
 import br.com.gn.OperationType
-import br.com.gn.RouteServiceGrpc
 import br.com.gn.order.NewOrderRequest
 import br.com.gn.order.Order
 import br.com.gn.order.OrderRepository
 import br.com.gn.order.UpdateOrderRequest
 import br.com.gn.shared.exception.ObjectAlreadyExistsException
 import br.com.gn.shared.exception.ObjectNotFoundException
+import br.com.gn.shared.kafka.Producer
+import br.com.gn.shared.kafka.RouteMessage
 import br.com.gn.shared.validation.ValidUUID
 import io.micronaut.validation.Validated
 import java.util.*
@@ -24,7 +24,7 @@ import javax.validation.constraints.Size
 class ManageOrderService(
     private val repository: OrderRepository,
     private val manager: EntityManager,
-    private val wstRouteClient: RouteServiceGrpc.RouteServiceBlockingStub
+    private val producer: Producer
 ) {
     @Transactional
     fun create(@Valid request: NewOrderRequest): Order {
@@ -80,13 +80,9 @@ class ManageOrderService(
 
     private fun notifyRoute(order: Order) {
         if (!order.route.isNullOrBlank())
-            wstRouteClient.notify(
-                NotifyRouteRequest.newBuilder()
-                    .setExporterCode(order.exporter.code)
-                    .setImporterPlant(order.importer.plant)
-                    .setName(order.route)
-                    .setType(OperationType.IMPORT)
-                    .build()
+            producer.sendNotification(
+                order.route!!,
+                RouteMessage(order.route!!, order.exporter.code, order.importer.plant, OperationType.IMPORT)
             )
     }
 }

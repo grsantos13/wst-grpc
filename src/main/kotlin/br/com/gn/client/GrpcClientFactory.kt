@@ -10,6 +10,6 @@ import javax.inject.Singleton
 class GrpcClientFactory {
 
     @Singleton
-    fun wstRouteReadClientStub(@GrpcChannel("wstRouteRead") channel: ManagedChannel) =
+    fun wstRouteClientStub(@GrpcChannel("wstRoute") channel: ManagedChannel) =
         RouteServiceGrpc.newBlockingStub(channel)
 }

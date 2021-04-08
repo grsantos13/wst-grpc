@@ -38,6 +38,7 @@ dependencies {
     implementation("io.micronaut.data:micronaut-data-hibernate-jpa")
     implementation("io.micronaut:micronaut-http-client")
     implementation("org.hibernate:hibernate-validator:6.1.6.Final")
+    implementation("io.micronaut.kafka:micronaut-kafka")
     testImplementation("org.mockito:mockito-core")
     testImplementation("org.hamcrest:hamcrest-core:2.2")
     runtimeOnly("ch.qos.logback:logback-classic")
