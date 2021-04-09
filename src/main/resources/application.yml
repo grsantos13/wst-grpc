@@ -3,23 +3,24 @@ micronaut:
     name: wst
 datasources:
   default:
-    url: jdbc:h2:mem:devDb;MVCC=TRUE;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE
-    driverClassName: org.h2.Driver
-    username: sa
-    password: ''
-    schema-generate: CREATE_DROP
-    dialect: H2
+    url: ${DB_URL:`jdbc:h2:mem:devDb;MVCC=TRUE;LOCK_TIMEOUT=10000;DB_CLOSE_ON_EXIT=FALSE`}
+    driverClassName: ${DB_DRIVER:`org.h2.Driver`}
+    username: ${DB_USERNAME:sa}
+    password: ${DB_PASSWORD:''}
+    schema-generate: ${DB_SCHEMA_GENERATE:CREATE_DROP}
+    dialect: ${DB_DIALECT:H2}
+
 jpa:
   default:
     properties:
       hibernate:
-        hbm2ddl.auto: update
-        show_sql: true
-        format_sql: true
+        hbm2ddl.auto: ${DB_AUTO_DDL:update}
+        show_sql: ${DB_SHOW_SQL:true}
+        format_sql: ${DB_FORMAT_SQL:true}
 
 grpc:
   server:
-    port: 50049
+    port: ${GRPC_PORT:50049}
     keep-alive-time: 3h
     max-inbound-message-size: 1024
   client:
@@ -27,13 +28,13 @@ grpc:
     max-retry-attempts: 10
   channels:
     wstRoute:
-      address: 'localhost:50050'
+      address: ${WST_ROUTE_CHANNEL:'localhost:50050'}
       plaintext: true
       max-retry-attempts: 10
 
 kafka:
   bootstrap:
-    servers: localhost:9092
+    servers: ${KAFKA_HOST:'localhost:9092'}
 
 siscomex:
   ncm:
