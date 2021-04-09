@@ -33,6 +33,7 @@ class ManageOrderService(
 
         val order = request.toModel(manager)
         notifyRoute(order)
+        producer.exporterNotification(order.exporter.code, order.exporter.name)
 
         repository.save(order)
         return order
@@ -80,7 +81,7 @@ class ManageOrderService(
 
     private fun notifyRoute(order: Order) {
         if (!order.route.isNullOrBlank())
-            producer.sendNotification(
+            producer.routeNotification(
                 order.route!!,
                 RouteMessage(order.route!!, order.exporter.code, order.importer.plant, OperationType.IMPORT)
             )

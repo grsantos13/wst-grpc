@@ -1,9 +1,9 @@
 package br.com.gn.order
 
 import br.com.gn.deliveryplace.DeliveryPlace
-import br.com.gn.exporter.Exporter
 import br.com.gn.importer.Importer
 import br.com.gn.material.Material
+import br.com.gn.order.exporter.ExporterRequest
 import br.com.gn.shared.exception.ObjectNotFoundException
 import br.com.gn.shared.validation.ValidUUID
 import br.com.gn.user.User
@@ -14,17 +14,13 @@ import java.time.LocalDate
 import java.util.*
 import javax.persistence.EntityManager
 import javax.validation.Valid
-import javax.validation.constraints.NotBlank
-import javax.validation.constraints.NotNull
-import javax.validation.constraints.PastOrPresent
-import javax.validation.constraints.Positive
-import javax.validation.constraints.Size
+import javax.validation.constraints.*
 
 @Introspected
 data class NewOrderRequest(
     @field:NotBlank val origin: String,
     @field:NotBlank val destination: String,
-    @field:NotBlank @field:ValidUUID val exporterId: String,
+    @field:NotNull @field:Valid val exporter: ExporterRequest,
     @field:NotNull @field:Valid @field:Size(min = 1) val items: List<ItemRequest>,
     @field:NotNull @field:Size(max = 10) val number: String,
     @field:NotBlank @field:ValidUUID val importerId: String,
@@ -38,8 +34,6 @@ data class NewOrderRequest(
     val route: String? = null
 ) {
     fun toModel(manager: EntityManager): Order {
-        val exporter = manager.find(Exporter::class.java, UUID.fromString(exporterId))
-            ?: throw ObjectNotFoundException("Exporter not found with id $exporterId")
 
         val importer = manager.find(Importer::class.java, UUID.fromString(importerId))
             ?: throw ObjectNotFoundException("Importer not found with id $importerId")
@@ -56,7 +50,7 @@ data class NewOrderRequest(
         val order = Order(
             origin = origin,
             destination = destination,
-            exporter = exporter,
+            exporter = exporter.toModel(),
             number = number,
             importer = importer,
             date = date!!,

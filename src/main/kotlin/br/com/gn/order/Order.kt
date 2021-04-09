@@ -2,7 +2,7 @@ package br.com.gn.order
 
 import br.com.gn.OrderResponse
 import br.com.gn.deliveryplace.DeliveryPlace
-import br.com.gn.exporter.Exporter
+import br.com.gn.order.exporter.Exporter
 import br.com.gn.importer.Importer
 import br.com.gn.order.Status.PENDING_APPROVAL
 import br.com.gn.order.event.Event
@@ -34,7 +34,7 @@ import javax.validation.constraints.Size
 class Order(
     @field:NotBlank @Column(nullable = false, updatable = false) val origin: String,
     @field:NotBlank @Column(nullable = false, updatable = false) val destination: String,
-    @field:NotNull @field:Valid @ManyToOne @JoinColumn(nullable = false, updatable = false) val exporter: Exporter,
+    @field:NotNull @field:Valid @Embedded val exporter: Exporter,
     @field:NotNull @field:Size(max = 10) val number: String,
     @field:NotNull @field:Valid @ManyToOne @JoinColumn(nullable = false, updatable = false) val importer: Importer,
     @field:NotNull @field:PastOrPresent @Column(nullable = false, updatable = false) val date: LocalDate,
@@ -142,7 +142,7 @@ class Order(
             .setDeliveryPlace(deliveryPlace?.name ?: "")
             .setId(id.toString())
             .setBrokerReference(brokerReference ?: "")
-            .setRoute(route)
+            .setRoute(route ?: "")
             .setEvents(
                 OrderResponse.EventResponse.newBuilder()
                     .setAvailability(event.availability.toString())

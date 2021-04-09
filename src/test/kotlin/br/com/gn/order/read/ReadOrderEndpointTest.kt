@@ -7,7 +7,6 @@ import br.com.gn.ReadOrderServiceGrpc
 import br.com.gn.address.Address
 import br.com.gn.deliveryplace.DeliveryPlace
 import br.com.gn.deliveryplace.DeliveryPlaceRepository
-import br.com.gn.exporter.*
 import br.com.gn.importer.Importer
 import br.com.gn.importer.ImporterRepository
 import br.com.gn.material.Material
@@ -17,6 +16,7 @@ import br.com.gn.order.Modal
 import br.com.gn.order.Order
 import br.com.gn.order.OrderRepository
 import br.com.gn.order.event.EventRepository
+import br.com.gn.order.exporter.Exporter
 import br.com.gn.user.User
 import br.com.gn.user.UserRepository
 import io.grpc.ManagedChannel
@@ -35,7 +35,6 @@ import java.time.LocalDate
 @MicronautTest(transactional = false)
 internal class ReadOrderEndpointTest(
     private val grpcClient: ReadOrderServiceGrpc.ReadOrderServiceBlockingStub,
-    private val exporterRepository: ExporterRepository,
     private val importerRepository: ImporterRepository,
     private val materialRepository: MaterialRepository,
     private val userRepository: UserRepository,
@@ -58,46 +57,24 @@ internal class ReadOrderEndpointTest(
     fun setup() {
         user = userRepository.save(User("email@email.com", "Teste"))
         deliveryPlace = deliveryPlaceRepository.save(DeliveryPlace("LOCAL DE ENTREGA"))
-        exporterOrderOne = exporterRepository.save(
-            Exporter(
-                code = "12345678",
-                name = "Test",
-                paymentTerms = PaymentTerms.E30,
-                address = Address("Test", "test", "test", "test"),
-                incoterm = Incoterm.CIF,
-                currency = Currency.EUR,
-                availabilityLT = 30,
-                departureLT = 6,
-                arrivalLT = 20,
-                totalLT = 80
+        exporterOrderOne = Exporter(code = "12345678", name = "Test")
+        exporterOrderTwo = Exporter(code = "12345677", name = "Test")
+        importerOrderOne = importerRepository.save(
+            Importer(
+                plant = "2422",
+                fiscalName = "COMPANY LLC",
+                fiscalNumber = "27679970000111",
+                address = Address("Test", "test", "test", "test")
             )
         )
-        exporterOrderTwo = exporterRepository.save(
-            Exporter(
-                code = "12345677",
-                name = "Test",
-                paymentTerms = PaymentTerms.E30,
-                address = Address("Test", "test", "test", "test"),
-                incoterm = Incoterm.CIF,
-                currency = Currency.EUR,
-                availabilityLT = 30,
-                departureLT = 6,
-                arrivalLT = 20,
-                totalLT = 80
+        importerOrderTwo = importerRepository.save(
+            Importer(
+                plant = "2195",
+                fiscalName = "COMPANY LLC",
+                fiscalNumber = "27679970000111",
+                address = Address("Test", "test", "test", "test")
             )
         )
-        importerOrderOne = importerRepository.save(Importer(
-            plant = "2422",
-            fiscalName = "COMPANY LLC",
-            fiscalNumber = "27679970000111",
-            address = Address("Test", "test", "test", "test")
-        ))
-        importerOrderTwo = importerRepository.save(Importer(
-            plant = "2195",
-            fiscalName = "COMPANY LLC",
-            fiscalNumber = "27679970000111",
-            address = Address("Test", "test", "test", "test")
-        ))
 
         val material = Material(
             code = "12345678",
@@ -123,7 +100,7 @@ internal class ReadOrderEndpointTest(
             necessity = LocalDate.now(),
             deadline = LocalDate.now()
         )
-        order.includeItems(listOf(Item(BigDecimal.TEN, material!!, order)))
+        order.includeItems(listOf(Item(BigDecimal.TEN, material, order)))
         orderOne = orderRepository.save(order)
         order = Order(
             origin = "Belgium",
@@ -137,7 +114,7 @@ internal class ReadOrderEndpointTest(
             necessity = LocalDate.now(),
             deadline = LocalDate.now()
         )
-        order.includeItems(listOf(Item(BigDecimal.TEN, material!!, order)))
+        order.includeItems(listOf(Item(BigDecimal.TEN, material, order)))
         orderTwo = orderRepository.save(order)
     }
 
@@ -145,7 +122,6 @@ internal class ReadOrderEndpointTest(
     fun after() {
         eventRepository.deleteAll()
         orderRepository.deleteAll()
-        exporterRepository.deleteAll()
         importerRepository.deleteAll()
         materialRepository.deleteAll()
         userRepository.deleteAll()
@@ -204,7 +180,7 @@ internal class ReadOrderEndpointTest(
         val response = grpcClient.read(
             ReadOrderRequest.newBuilder()
                 .setPageable(generatePageable())
-                .setExporterId(exporterOrderOne!!.id.toString())
+                .setExporterCode(exporterOrderOne!!.code)
                 .build()
         )
 

@@ -4,11 +4,6 @@ import br.com.gn.*
 import br.com.gn.address.Address
 import br.com.gn.deliveryplace.DeliveryPlace
 import br.com.gn.deliveryplace.DeliveryPlaceRepository
-import br.com.gn.exporter.Currency
-import br.com.gn.exporter.Exporter
-import br.com.gn.exporter.ExporterRepository
-import br.com.gn.exporter.Incoterm
-import br.com.gn.exporter.PaymentTerms
 import br.com.gn.importer.Importer
 import br.com.gn.importer.ImporterRepository
 import br.com.gn.material.Material
@@ -17,6 +12,8 @@ import br.com.gn.order.Item
 import br.com.gn.order.Order
 import br.com.gn.order.OrderRepository
 import br.com.gn.order.event.EventRepository
+import br.com.gn.order.exporter.Exporter
+import br.com.gn.shared.kafka.Producer
 import br.com.gn.user.User
 import br.com.gn.user.UserRepository
 import br.com.gn.util.StatusRuntimeExceptionUtils.Companion.violations
@@ -27,6 +24,7 @@ import io.micronaut.context.annotation.Bean
 import io.micronaut.context.annotation.Factory
 import io.micronaut.grpc.annotation.GrpcChannel
 import io.micronaut.grpc.server.GrpcServerChannel
+import io.micronaut.test.annotation.MockBean
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.containsInAnyOrder
@@ -36,15 +34,16 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.mockito.Mockito
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.util.*
+import javax.inject.Inject
 import br.com.gn.order.Modal as OrderModal
 
 @MicronautTest(transactional = false)
 internal class ManageOrderEndpointTest(
     private val grpcClient: ManageOrderServiceGrpc.ManageOrderServiceBlockingStub,
-    private val exporterRepository: ExporterRepository,
     private val importerRepository: ImporterRepository,
     private val materialRepository: MaterialRepository,
     private val userRepository: UserRepository,
@@ -59,31 +58,26 @@ internal class ManageOrderEndpointTest(
     private var material: Material? = null
     private var user: User? = null
 
+    @field:Inject
+    private lateinit var producer: Producer
+
+
     @BeforeEach
     fun setup() {
+        Mockito.doNothing().`when`(producer).routeNotification(Mockito.any(), Mockito.any())
+        Mockito.doNothing().`when`(producer).exporterNotification(Mockito.any(), Mockito.any())
         user = userRepository.save(User("email@email.com", "Teste"))
         deliveryPlace = deliveryPlaceRepository.save(DeliveryPlace("LOCAL DE ENTREGA"))
-        exporter = exporterRepository.save(
-            Exporter(
-                code = "12345678",
-                name = "Test",
-                paymentTerms = PaymentTerms.E30,
-                address = Address("Test", "test", "test", "test"),
-                incoterm = Incoterm.CIF,
-                currency = Currency.EUR,
-                availabilityLT = 30,
-                departureLT = 6,
-                arrivalLT = 20,
-                totalLT = 80
+        exporter = Exporter(code = "12345678", name = "Test")
+
+        importer = importerRepository.save(
+            Importer(
+                plant = "2422",
+                fiscalName = "COMPANY LLC",
+                fiscalNumber = "27679970000111",
+                address = Address("Test", "test", "test", "test")
             )
         )
-
-        importer = importerRepository.save(Importer(
-            plant = "2422",
-            fiscalName = "COMPANY LLC",
-            fiscalNumber = "27679970000111",
-            address = Address("Test", "test", "test", "test")
-        ))
         val material = Material(
             code = "12345678",
             description = "Material teste",
@@ -102,7 +96,6 @@ internal class ManageOrderEndpointTest(
     fun after() {
         eventRepository.deleteAll()
         orderRepository.deleteAll()
-        exporterRepository.deleteAll()
         importerRepository.deleteAll()
         materialRepository.deleteAll()
         userRepository.deleteAll()
@@ -111,23 +104,11 @@ internal class ManageOrderEndpointTest(
 
     @Test
     fun `should save an order successfully`() {
+
         val request = generateNewOrderRequest()
 
         val response = grpcClient.create(request)
         assertNotNull(response.id)
-    }
-
-    @Test
-    fun `should not save an order due to not finding the exporter`() {
-        val exporterId = UUID.randomUUID().toString()
-        val request = generateNewOrderRequest(exporterId = exporterId)
-
-        val exception = assertThrows<StatusRuntimeException> {
-            grpcClient.create(request)
-        }
-
-        assertEquals(Status.NOT_FOUND.code, exception.status.code)
-        assertEquals("Exporter not found with id $exporterId", exception.status.description)
     }
 
     @Test
@@ -217,14 +198,11 @@ internal class ManageOrderEndpointTest(
             assertThat(
                 violations(this), containsInAnyOrder(
                     Pair("responsibleId", "must not be blank"),
-                    Pair("exporterId", "must not be blank"),
+                    Pair("code", "must not be blank"),
+                    Pair("name", "must not be blank"),
                     Pair("deliveryPlaceId", "must not be blank"),
                     Pair(
                         "importerId",
-                        "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""
-                    ),
-                    Pair(
-                        "exporterId",
                         "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""
                     ),
                     Pair("observation", "must not be blank"),
@@ -592,7 +570,10 @@ internal class ManageOrderEndpointTest(
         NewOrderRequest.newBuilder()
             .setOrigin("EUA")
             .setDestination("Brazil")
-            .setExporterId(exporterId ?: exporter!!.id.toString())
+            .setExporter(
+                NewOrderRequest.ExporterRequest.newBuilder()
+                    .setName("Exp Teste").setCode("123456").build()
+            )
             .addItems(
                 0, NewOrderRequest.Item.newBuilder()
                     .setMaterialId(materialId ?: material!!.id.toString())
@@ -610,6 +591,11 @@ internal class ManageOrderEndpointTest(
             .setRoute("MAR_USA_EXP_IMP")
             .setDeliveryPlaceId(deliveryPlaceId ?: deliveryPlace!!.id.toString())
             .build()
+
+    @MockBean(Producer::class)
+    fun producer(): Producer {
+        return Mockito.mock(Producer::class.java)
+    }
 }
 
 @Factory

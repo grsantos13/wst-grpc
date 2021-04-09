@@ -1,7 +1,6 @@
 syntax = "proto3";
 import "shared.proto";
 import "importer.proto";
-import "exporter.proto";
 
 option java_multiple_files = true;
 option java_outer_classname = "Order";
@@ -23,7 +22,7 @@ service ReadOrderService {
 message NewOrderRequest {
   string origin = 1;
   string destination = 2;
-  string exporterId = 3;
+  ExporterRequest exporter = 3;
   repeated Item items = 4;
   string number = 5;
   string importerId = 6;
@@ -40,11 +39,16 @@ message NewOrderRequest {
     string materialId = 1;
     string quantity = 2;
   }
+
+  message ExporterRequest {
+    string code = 1;
+    string name = 2;
+  }
 }
 
 message ReadOrderRequest {
   oneof SearchOrder{
-    string exporterId = 1;
+    string exporterCode = 1;
     string importerId = 2;
     string number = 3;
     string origin = 4;
@@ -129,5 +133,10 @@ message OrderResponse {
     string preAlert = 6;
     string wrongNecessityAlert = 7;
     string id = 8;
+  }
+
+  message ExporterResponse {
+    string code = 1;
+    string name = 2;
   }
 }

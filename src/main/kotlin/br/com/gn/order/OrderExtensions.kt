@@ -1,6 +1,7 @@
 package br.com.gn.order
 
 import br.com.gn.NewOrderRequest
+import br.com.gn.NewOrderRequest.ExporterRequest
 import br.com.gn.ReadOrderRequest
 import br.com.gn.ReadOrderRequest.SearchOrderCase.*
 import br.com.gn.UpdateOrderRequest
@@ -12,12 +13,14 @@ import javax.validation.ConstraintViolationException
 import javax.validation.Validator
 import br.com.gn.order.NewOrderRequest as Request
 import br.com.gn.order.UpdateOrderRequest as UpdateRequest
+import br.com.gn.order.exporter.ExporterRequest as ExporterRequestModel
+
 
 fun NewOrderRequest.toRequestModel(): Request {
     return Request(
         origin = origin,
         destination = destination,
-        exporterId = exporterId,
+        exporter = exporter.toRequestModel(),
         items = itemsList.map {
             ItemRequest(
                 materialId = it.materialId,
@@ -42,7 +45,7 @@ fun ReadOrderRequest.toFilter(validator: Validator): Filter {
         DESTINATION -> Filter.ByDestination(destination)
         ORIGIN -> Filter.ByOrigin(origin)
         NUMBER -> Filter.ByNumber(number)
-        EXPORTERID -> Filter.ByExporter(exporterId)
+        EXPORTERCODE -> Filter.ByExporter(exporterCode)
         IMPORTERID -> Filter.ByImporter(importerId)
         else -> Filter.Neutral()
     }
@@ -62,5 +65,11 @@ fun UpdateOrderRequest.toRequestModel(): UpdateRequest {
         necessity = this.necessity,
         responsibleId = this.responsibleId,
         route = route
+    )
+}
+
+fun ExporterRequest.toRequestModel(): ExporterRequestModel {
+    return ExporterRequestModel(
+        code, name
     )
 }

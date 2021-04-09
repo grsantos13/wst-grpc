@@ -29,9 +29,9 @@ sealed class Filter {
     }
 
     @Introspected
-    data class ByExporter(@field:NotBlank @field:ValidUUID val exporterId: String) : Filter() {
+    data class ByExporter(@field:NotBlank @field:ValidUUID val exporterCode: String) : Filter() {
         override fun filter(repository: OrderRepository, pageable: Pageable): Page<Order> {
-            return repository.findByExporterId(UUID.fromString(exporterId), pageable)
+            return repository.findByExporterCode(exporterCode, pageable)
         }
     }
 
