@@ -28,13 +28,13 @@ grpc:
     max-retry-attempts: 10
   channels:
     wstRoute:
-      address: ${WST_ROUTE_CHANNEL:'localhost:50050'}
+      address: ${WST_ROUTE_CHANNEL:`localhost:50050`}
       plaintext: true
       max-retry-attempts: 10
 
 kafka:
   bootstrap:
-    servers: ${KAFKA_HOST:'localhost:9092'}
+    servers: ${KAFKA_HOST:`localhost:9092`}
 
 siscomex:
   ncm:
