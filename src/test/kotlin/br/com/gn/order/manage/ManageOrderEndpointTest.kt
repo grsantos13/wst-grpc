@@ -2,8 +2,6 @@ package br.com.gn.order.manage
 
 import br.com.gn.*
 import br.com.gn.address.Address
-import br.com.gn.deliveryplace.DeliveryPlace
-import br.com.gn.deliveryplace.DeliveryPlaceRepository
 import br.com.gn.importer.Importer
 import br.com.gn.importer.ImporterRepository
 import br.com.gn.material.Material
@@ -47,12 +45,10 @@ internal class ManageOrderEndpointTest(
     private val importerRepository: ImporterRepository,
     private val materialRepository: MaterialRepository,
     private val userRepository: UserRepository,
-    private val deliveryPlaceRepository: DeliveryPlaceRepository,
     private val orderRepository: OrderRepository,
     private val eventRepository: EventRepository
 ) {
 
-    private var deliveryPlace: DeliveryPlace? = null
     private var exporter: Exporter? = null
     private var importer: Importer? = null
     private var material: Material? = null
@@ -67,7 +63,6 @@ internal class ManageOrderEndpointTest(
         Mockito.doNothing().`when`(producer).routeNotification(Mockito.any(), Mockito.any())
         Mockito.doNothing().`when`(producer).exporterNotification(Mockito.any(), Mockito.any())
         user = userRepository.save(User("email@email.com", "Teste"))
-        deliveryPlace = deliveryPlaceRepository.save(DeliveryPlace("LOCAL DE ENTREGA"))
         exporter = Exporter(code = "12345678", name = "Test")
 
         importer = importerRepository.save(
@@ -99,7 +94,6 @@ internal class ManageOrderEndpointTest(
         importerRepository.deleteAll()
         materialRepository.deleteAll()
         userRepository.deleteAll()
-        deliveryPlaceRepository.deleteAll()
     }
 
     @Test
@@ -135,19 +129,6 @@ internal class ManageOrderEndpointTest(
 
         assertEquals(Status.NOT_FOUND.code, exception.status.code)
         assertEquals("User not found with id $responsibleId", exception.status.description)
-    }
-
-    @Test
-    fun `should not save an order due to not finding the delivery place`() {
-        val deliveryPlaceId = UUID.randomUUID().toString()
-        val request = generateNewOrderRequest(deliveryPlaceId = deliveryPlaceId)
-
-        val exception = assertThrows<StatusRuntimeException> {
-            grpcClient.create(request)
-        }
-
-        assertEquals(Status.NOT_FOUND.code, exception.status.code)
-        assertEquals("Delivery place not found with id $deliveryPlaceId", exception.status.description)
     }
 
     @Test
@@ -200,7 +181,6 @@ internal class ManageOrderEndpointTest(
                     Pair("responsibleId", "must not be blank"),
                     Pair("code", "must not be blank"),
                     Pair("name", "must not be blank"),
-                    Pair("deliveryPlaceId", "must not be blank"),
                     Pair(
                         "importerId",
                         "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""
@@ -218,10 +198,6 @@ internal class ManageOrderEndpointTest(
                     Pair("destination", "must not be blank"),
                     Pair("items", "size must be between 1 and 2147483647"),
                     Pair("necessity", "must not be null"),
-                    Pair(
-                        "deliveryPlaceId",
-                        "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""
-                    ),
                 )
             )
         }
@@ -231,11 +207,10 @@ internal class ManageOrderEndpointTest(
     fun `should update an order successfully`() {
         val createdOrder = orderRepository.save(generateOrder())
         val newResponsible = userRepository.save(User("teste@teste.com", "Teste Update"))
-        val newDeliveryPlace = deliveryPlaceRepository.save(DeliveryPlace("Delivery Place 2"))
         val response = grpcClient.update(
             UpdateOrderRequest.newBuilder()
                 .setDeadline("2021-07-18")
-                .setDeliveryPlaceId(newDeliveryPlace.id.toString())
+                .setDeliveryPlace("Delivery Place 2")
                 .setId(createdOrder.id.toString())
                 .setModal(Modal.ROAD)
                 .setNecessity("2021-07-01")
@@ -244,45 +219,21 @@ internal class ManageOrderEndpointTest(
         )
 
         assertEquals("2021-07-18", response.deadline)
-        assertEquals(newDeliveryPlace.name, response.deliveryPlace)
+        assertEquals("Delivery Place 2", response.deliveryPlace)
         assertEquals(Modal.ROAD, response.modal)
         assertEquals("2021-07-01", response.necessity)
         assertEquals(newResponsible.name, response.responsible.name)
     }
 
     @Test
-    fun `should not update an order for not finding the delivery place`() {
-        val createdOrder = orderRepository.save(generateOrder())
-        val newResponsible = userRepository.save(User("teste@teste.com", "Teste Update"))
-        val randomId = UUID.randomUUID().toString()
-        val exception = assertThrows<StatusRuntimeException> {
-            grpcClient.update(
-                UpdateOrderRequest.newBuilder()
-                    .setDeadline(LocalDate.now().plusDays(1).toString())
-                    .setDeliveryPlaceId(randomId)
-                    .setId(createdOrder.id.toString())
-                    .setModal(Modal.ROAD)
-                    .setNecessity(LocalDate.now().plusMonths(3).toString())
-                    .setResponsibleId(newResponsible.id.toString())
-                    .build()
-            )
-        }
-
-        assertEquals(Status.NOT_FOUND.code, exception.status.code)
-        assertEquals("Delivery place not found with id $randomId", exception.status.description)
-
-    }
-
-    @Test
     fun `should not update an order for not finding the order`() {
         val newResponsible = userRepository.save(User("teste@teste.com", "Teste Update"))
-        val newDeliveryPlace = deliveryPlaceRepository.save(DeliveryPlace("Delivery Place 2"))
         val randomId = UUID.randomUUID().toString()
         val exception = assertThrows<StatusRuntimeException> {
             grpcClient.update(
                 UpdateOrderRequest.newBuilder()
                     .setDeadline(LocalDate.now().plusDays(1).toString())
-                    .setDeliveryPlaceId(newDeliveryPlace.id.toString())
+                    .setDeliveryPlace("Delivery Place 2")
                     .setId(randomId)
                     .setModal(Modal.ROAD)
                     .setNecessity(LocalDate.now().plusMonths(3).toString())
@@ -299,13 +250,12 @@ internal class ManageOrderEndpointTest(
     @Test
     fun `should not update an order for not finding the responsible`() {
         val createdOrder = orderRepository.save(generateOrder())
-        val newDeliveryPlace = deliveryPlaceRepository.save(DeliveryPlace("Delivery Place 2"))
         val randomId = UUID.randomUUID().toString()
         val exception = assertThrows<StatusRuntimeException> {
             grpcClient.update(
                 UpdateOrderRequest.newBuilder()
                     .setDeadline(LocalDate.now().plusDays(1).toString())
-                    .setDeliveryPlaceId(newDeliveryPlace.id.toString())
+                    .setDeliveryPlace("Delivery Place 2")
                     .setId(createdOrder.id.toString())
                     .setModal(Modal.ROAD)
                     .setNecessity(LocalDate.now().plusMonths(3).toString())
@@ -333,10 +283,6 @@ internal class ManageOrderEndpointTest(
             assertEquals("Arguments validation error", status.description)
             assertThat(
                 violations(exception), containsInAnyOrder(
-                    Pair(
-                        "deliveryPlaceId",
-                        "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""
-                    ),
                     Pair(
                         "id",
                         "must match \"^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\$\""
@@ -560,10 +506,8 @@ internal class ManageOrderEndpointTest(
     }
 
     private fun generateNewOrderRequest(
-        exporterId: String? = null,
         importerId: String? = null,
         responsibleId: String? = null,
-        deliveryPlaceId: String? = null,
         materialId: String? = null,
         date: String? = null
     ) =
@@ -589,7 +533,7 @@ internal class ManageOrderEndpointTest(
             .setDeadline(LocalDate.now().toString())
             .setObservation("Test")
             .setRoute("MAR_USA_EXP_IMP")
-            .setDeliveryPlaceId(deliveryPlaceId ?: deliveryPlace!!.id.toString())
+            .setDeliveryPlace("Delivery Place")
             .build()
 
     @MockBean(Producer::class)

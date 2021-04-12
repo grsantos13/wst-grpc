@@ -35,7 +35,7 @@ fun NewOrderRequest.toRequestModel(): Request {
         necessity = necessity.toLocalDate(),
         deadline = deadline.toLocalDate(),
         observation = observation,
-        deliveryPlaceId = deliveryPlaceId,
+        deliveryPlace = deliveryPlace,
         route = route
     )
 }
@@ -60,7 +60,7 @@ fun ReadOrderRequest.toFilter(validator: Validator): Filter {
 fun UpdateOrderRequest.toRequestModel(): UpdateRequest {
     return UpdateRequest(
         deadline = this.deadline,
-        deliveryPlaceId = this.deliveryPlaceId,
+        deliveryPlace = this.deliveryPlace,
         modal = modal.name.toEnum<Modal>(),
         necessity = this.necessity,
         responsibleId = this.responsibleId,

@@ -1,6 +1,5 @@
 package br.com.gn.order
 
-import br.com.gn.deliveryplace.DeliveryPlace
 import br.com.gn.importer.Importer
 import br.com.gn.material.Material
 import br.com.gn.order.exporter.ExporterRequest
@@ -30,7 +29,7 @@ data class NewOrderRequest(
     @field:NotNull val necessity: LocalDate?,
     @field:NotNull val deadline: LocalDate?,
     @field:NotBlank @field:Size(max = 1000) val observation: String? = null,
-    @field:NotBlank @field:ValidUUID val deliveryPlaceId: String? = null,
+    val deliveryPlace: String? = null,
     val route: String? = null
 ) {
     fun toModel(manager: EntityManager): Order {
@@ -40,11 +39,6 @@ data class NewOrderRequest(
 
         val responsible = manager.find(User::class.java, UUID.fromString(responsibleId))
             ?: throw ObjectNotFoundException("User not found with id $responsibleId")
-
-        var deliveryPlace: DeliveryPlace? = null
-        if (!deliveryPlaceId.isNullOrBlank())
-            deliveryPlace = manager.find(DeliveryPlace::class.java, UUID.fromString(deliveryPlaceId))
-                ?: throw ObjectNotFoundException("Delivery place not found with id $deliveryPlaceId")
 
 
         val order = Order(
@@ -83,7 +77,7 @@ data class ItemRequest(
 
 @Introspected
 data class UpdateOrderRequest(
-    @field:ValidUUID val deliveryPlaceId: String? = null,
+    val deliveryPlace: String? = null,
     @field:NotNull val modal: Modal?,
     @field:NotBlank val necessity: String,
     @field:NotBlank @field:ValidUUID val responsibleId: String,
@@ -91,7 +85,7 @@ data class UpdateOrderRequest(
     val route: String? = null
 ) {
     class UpdateRequest(
-        val deliveryPlace: DeliveryPlace? = null,
+        val deliveryPlace: String? = null,
         @field:NotNull val modal: Modal,
         @field:NotNull val necessity: LocalDate?,
         @field:NotNull val responsible: User,
@@ -100,10 +94,6 @@ data class UpdateOrderRequest(
     )
 
     fun toUpdateRequest(manager: EntityManager): UpdateRequest {
-        var deliveryPlace: DeliveryPlace? = null
-        if (deliveryPlaceId != null)
-            deliveryPlace = manager.find(DeliveryPlace::class.java, UUID.fromString(deliveryPlaceId))
-                ?: throw ObjectNotFoundException("Delivery place not found with id $deliveryPlaceId")
 
         val responsible = manager.find(User::class.java, UUID.fromString(responsibleId))
             ?: throw ObjectNotFoundException("User not found with id $responsibleId")

@@ -1,11 +1,10 @@
 package br.com.gn.order
 
 import br.com.gn.OrderResponse
-import br.com.gn.deliveryplace.DeliveryPlace
-import br.com.gn.order.exporter.Exporter
 import br.com.gn.importer.Importer
 import br.com.gn.order.Status.PENDING_APPROVAL
 import br.com.gn.order.event.Event
+import br.com.gn.order.exporter.Exporter
 import br.com.gn.user.User
 import org.hibernate.annotations.OnDelete
 import org.hibernate.annotations.OnDeleteAction
@@ -43,7 +42,7 @@ class Order(
     @NotNull necessity: LocalDate,
     @NotNull deadline: LocalDate,
     observation: String? = null,
-    deliveryPlace: DeliveryPlace? = null,
+    deliveryPlace: String? = null,
     route: String? = null
 ) {
 
@@ -96,7 +95,6 @@ class Order(
     var responsible = responsible
         private set
 
-    @ManyToOne
     var deliveryPlace = deliveryPlace
         private set
 
@@ -139,7 +137,7 @@ class Order(
             .setNecessity(necessity.toString())
             .setDeadline(deadline.toString())
             .setObservation(observation ?: "")
-            .setDeliveryPlace(deliveryPlace?.name ?: "")
+            .setDeliveryPlace(deliveryPlace ?: "")
             .setId(id.toString())
             .setBrokerReference(brokerReference ?: "")
             .setRoute(route ?: "")

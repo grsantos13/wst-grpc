@@ -32,7 +32,7 @@ message NewOrderRequest {
   string necessity = 10;
   string deadline = 11;
   string observation = 12;
-  string deliveryPlaceId = 13;
+  string deliveryPlace = 13;
   string route = 14;
 
   message Item {
@@ -63,7 +63,7 @@ message UpdateOrderRequest {
   Modal modal = 2;
   string necessity = 3;
   string deadline = 4;
-  string deliveryPlaceId = 5;
+  string deliveryPlace = 5;
   string id = 6;
   string route = 7;
 }
